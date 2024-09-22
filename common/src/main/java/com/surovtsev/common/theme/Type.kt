@@ -1,4 +1,4 @@
-package com.surovtsev.foodtestapp.ui.theme
+package com.surovtsev.common.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

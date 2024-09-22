@@ -21,4 +21,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "FoodTestApp"
 include(":app")
- 
+include(":ScreenFoodMenu")
+include(":ScreenDish")
+include(":common")
