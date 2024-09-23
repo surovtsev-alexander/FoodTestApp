@@ -1,18 +1,9 @@
 package com.surovtsev.screenfoodmenu
 
 import android.widget.Toast
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.rememberTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +44,7 @@ import com.surovtsev.common.theme.PrimaryColor
 import com.surovtsev.common.viewmodels.FoodMenuViewModel
 import kotlin.math.acos
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -109,7 +100,7 @@ fun Controls(
 ) {
     with(density) {
         val painterResources = viewModel.items.map {
-            painterResource(id = it)
+            painterResource(id = it.id)
         }
 
         var animated by remember { mutableStateOf(false) }
@@ -206,22 +197,51 @@ fun Controls(
                 },
         ) {
             if (true) {
-                val diameterDp = size.height.toDp()
-                val radiusDp = diameterDp / 2
+                viewModel.radius = size.height.toDp() / 2
+                viewModel.angle = commitedDiffAngle.value + diffAngle.value
 
-                val iconSideRate = 0.1f
-                val dxRate = 0.1f
+                viewModel.UpdateCoordinates()
 
-                val centerRadiusRate = 0.8f
-                val iconSide = diameterDp * iconSideRate
+                val iconSide = viewModel.iconSide
+                for (idx in 0 until min(12, viewModel.items.count())) {
+                    val center = viewModel.items[idx].center
+                    Icon(
+                        painter = painterResources[idx],
+                        contentDescription = "Localized description",
+                        modifier = Modifier
+                            .size(iconSide, iconSide)
+                            .offset(center.x - iconSide / 2, center.y - iconSide / 2)
+                            .clickable {
+                                Toast
+                                    .makeText(
+                                        ctx,
+                                        "${viewModel.items[idx]}",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
+                            },
 
-                for (idx in 0 until 12) {
-                    val angle = 2 * Math.PI / 12 * idx + commitedDiffAngle.value + diffAngle.value
-                    val x = radiusDp * (1f + centerRadiusRate * cos(angle).toFloat())
-                    val y = radiusDp * (1f + centerRadiusRate * sin(angle).toFloat())
+                        tint = Color.White,
+                    )
+                }
 
-                    if (true) {
-                        if (idx < painterResources.size) {
+                if (false) {
+                    val diameterDp = size.height.toDp()
+                    val radiusDp = diameterDp / 2
+
+                    val iconSideRate = 0.1f
+                    val dxRate = 0.1f
+
+                    val centerRadiusRate = 0.8f
+                    val iconSide = diameterDp * iconSideRate
+
+                    for (idx in 0 until min(12, viewModel.items.count())) {
+                        val angle =
+                            2 * Math.PI / 12 * idx + commitedDiffAngle.value + diffAngle.value
+                        val x = radiusDp * (1f + centerRadiusRate * cos(angle).toFloat())
+                        val y = radiusDp * (1f + centerRadiusRate * sin(angle).toFloat())
+
+                        if (true) {
                             Icon(
                                 painter = painterResources[idx],
                                 contentDescription = "Localized description",
@@ -241,43 +261,43 @@ fun Controls(
                                 tint = Color.White,
                             )
                         }
-                    }
-                    if (false) {
-                        if (idx % 2 == 0) {
-                            Icon(
-                                painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
-                                contentDescription = "Localized description",
-                                modifier = Modifier
-                                    .size(iconSide, iconSide)
-                                    .offset(x - iconSide / 2, y - iconSide / 2),
-                                tint = PrimaryColor,
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .offset(x - iconSide / 2, y - iconSide / 2)
-                                    .size(iconSide)
-                                    .border(1.dp, Color.Black),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(text = "$idx")
+                        if (false) {
+                            if (idx % 2 == 0) {
+                                Icon(
+                                    painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
+                                    contentDescription = "Localized description",
+                                    modifier = Modifier
+                                        .size(iconSide, iconSide)
+                                        .offset(x - iconSide / 2, y - iconSide / 2),
+                                    tint = PrimaryColor,
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .offset(x - iconSide / 2, y - iconSide / 2)
+                                        .size(iconSide)
+                                        .border(1.dp, Color.Black),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(text = "$idx")
+                                }
                             }
                         }
                     }
+                }
 
-                    if (true) {
-                        val iconSize = size.width.toDp().div(8)
-                        val dx = size.width.toDp() / 30
-                        val dy = (size.width.toDp() - iconSize).div(2)
-                        Icon(
-                            painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
-                            contentDescription = "Localized description",
-                            modifier = Modifier
-                                .size(iconSize, iconSize)
-                                .offset(dx, dy),
-                            tint = PrimaryColor,
-                        )
-                    }
+                if (true) {
+                    val iconSize = size.width.toDp().div(8)
+                    val dx = size.width.toDp() / 30
+                    val dy = (size.width.toDp() - iconSize).div(2)
+                    Icon(
+                        painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
+                        contentDescription = "Localized description",
+                        modifier = Modifier
+                            .size(iconSize, iconSize)
+                            .offset(dx, dy),
+                        tint = PrimaryColor,
+                    )
                 }
 
                 if (true) {
