@@ -83,18 +83,6 @@ fun Circle(
     })
 }
 
-
-/*
-val Int.toDp: Int
-    get() = (this * Resources.getSystem().displayMetrics.density).roundToInt()
-
-val Float.toDp: Int
-    get() = (this * Resources.getSystem().displayMetrics.density).roundToInt()
-
-fun Int.pxToDp(): Float =
-    (this / (Resources.getSystem().displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT))
- */
-
 @Composable
 fun Controls(
     size: IntSize,
@@ -194,59 +182,69 @@ fun Controls(
                     val x = radiusDp * (1f + centerRadiusRate * cos(angle).toFloat())
                     val y = radiusDp * (1f + centerRadiusRate * sin(angle).toFloat())
 
-                    Box(
-                        modifier = Modifier
-                            .offset(x - iconSide / 2, y - iconSide / 2)
-                            .size(iconSide)
-                            .border(1.dp, Color.Black),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(text = "$idx")
+                    if (idx % 2 == 0) {
+                        Icon(
+                            painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
+                            contentDescription = "Localized description",
+                            modifier = Modifier
+                                .size(iconSide, iconSide)
+                                .offset(x - iconSide / 2, y - iconSide / 2),
+                            tint = PrimaryColor,
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .offset(x - iconSide / 2, y - iconSide / 2)
+                                .size(iconSide)
+                                .border(1.dp, Color.Black),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(text = "$idx")
+                        }
+                    }
+
+                    if (false) {
+                        val iconSize = size.width.toDp().div(10)
+                        val dx = 0.dp
+                        val dy = (size.width.toDp() - iconSize).div(2)
+                        Icon(
+                            painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
+                            contentDescription = "Localized description",
+                            modifier = Modifier
+                                .size(iconSize, iconSize)
+                                .offset(dx, dy),
+                            tint = PrimaryColor,
+                        )
                     }
                 }
 
                 if (false) {
-                    val iconSize = size.width.toDp().div(10)
-                    val dx = 0.dp
-                    val dy = (size.width.toDp() - iconSize).div(2)
-                    Icon(
-                        painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
-                        contentDescription = "Localized description",
-                        modifier = Modifier
-                            .size(iconSize, iconSize)
-                            .offset(dx, dy),
-                        tint = PrimaryColor,
+                    Text(
+                        text = RadToGradString(prevAngle.value) + " ->" + RadToGradString(currAngle.value) + ": " + RadToGradString(
+                            commitedDiffAngle.value
+                        ) + " " + RadToGradString(diffAngle.value), Modifier.align(Alignment.Center)
                     )
-                }
-            }
+                    Box(
+                        Modifier
+                            .offset {
+                                IntOffset(
+                                    currX.value.roundToInt(), currY.value.roundToInt()
+                                )
+                            }
+                            .background(Color.Blue)
+                            .size(50.dp))
 
-            if (false) {
-                Text(
-                    text = RadToGradString(prevAngle.value) + " ->" + RadToGradString(currAngle.value) + ": " + RadToGradString(
-                        commitedDiffAngle.value
-                    ) + " " + RadToGradString(diffAngle.value), Modifier.align(Alignment.Center)
-                )
-                Box(
-                    Modifier
+                    Box(modifier = Modifier
                         .offset {
                             IntOffset(
-                                currX.value.roundToInt(), currY.value.roundToInt()
+                                prevX.value.roundToInt(),
+                                prevY.value.roundToInt(),
                             )
                         }
-                        .background(Color.Blue)
+                        .background(Color.Red)
                         .size(50.dp))
-
-                Box(modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            prevX.value.roundToInt(),
-                            prevY.value.roundToInt(),
-                        )
-                    }
-                    .background(Color.Red)
-                    .size(50.dp))
+                }
             }
-
         }
     }
 }
