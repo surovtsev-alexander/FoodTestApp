@@ -11,7 +11,7 @@ class FoodMenuViewModel : ViewModel() {
     data class Item(
         val caption: String,
         val id: Int,
-        val center: Vec2 = Vec2(0f, 0f)
+        var center: Vec2 = Vec2(0f, 0f)
     )
 
     val items = listOf(
@@ -27,7 +27,11 @@ class FoodMenuViewModel : ViewModel() {
 
     var progress = 0
         set(value) {
-            field = value
+            field = if (value <= 0) {
+                1
+            } else {
+                value
+            }
         }
     var angle = 0f
         set(value) {
@@ -37,9 +41,13 @@ class FoodMenuViewModel : ViewModel() {
         set(value) {
             field = value
             iconSide = radius * iconSideRate * 2
+            sourcePosition.x = radius * (1f + centerRadiusRate)
+            sourcePosition.y = radius
         }
     var iconSide: Float = 0f
         private set
+
+    private val sourcePosition: Vec2 = Vec2(0f, 0f)
 
     private val iconSideRate = 0.1f
     private val dxRate = 0.1f
@@ -49,9 +57,11 @@ class FoodMenuViewModel : ViewModel() {
         for (idx in 0 until min(items.count(), 12)) {
             val angle = 2f * Math.PI / 12 * idx + angle
 
-            val center = items[idx].center;
-            center.x = radius * (1f + centerRadiusRate * cos(angle).toFloat())
-            center.y = radius * (1f + centerRadiusRate * sin(angle).toFloat())
+            val center = Vec2(
+                radius * (1f + centerRadiusRate * cos(angle).toFloat()),
+                radius * (1f + centerRadiusRate * sin(angle).toFloat())
+            )
+            items[idx].center = center * (progress / 100f) + sourcePosition * (1f - progress / 100f)
         }
     }
 

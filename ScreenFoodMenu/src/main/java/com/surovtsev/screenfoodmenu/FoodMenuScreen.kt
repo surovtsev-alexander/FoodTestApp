@@ -147,12 +147,12 @@ fun Controls(
         fun radToGradString(a: Float) = "%.2f".format(normalGrad(radToGrad(a)))
         fun normalRad(a: Float): Float {
             var res = a
-            val piFloat = Math.PI.toFloat()
-            while (res < -1 * piFloat) {
-                res += piFloat
+            val doublePiFloat = Math.PI.toFloat() * 2
+            while (res < -1 * doublePiFloat) {
+                res += doublePiFloat
             }
-            while (res > piFloat) {
-                res += piFloat
+            while (res > doublePiFloat) {
+                res -= doublePiFloat
             }
             return res
         }
@@ -233,7 +233,8 @@ fun Controls(
                         contentDescription = "Localized description",
                         modifier = Modifier
                             .size(iconSize, iconSize)
-                            .offset(dx, dy),
+                            .offset(dx, dy)
+                            .background(Color.Black),
                         tint = PrimaryColor,
                     )
                 }
