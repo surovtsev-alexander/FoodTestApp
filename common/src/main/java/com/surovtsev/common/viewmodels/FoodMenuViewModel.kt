@@ -11,18 +11,23 @@ class FoodMenuViewModel : ViewModel() {
     data class Item(
         val caption: String,
         val id: Int,
-        var center: Vec2 = Vec2(0f, 0f)
-    )
+        var imageInitialSector: Int,
+        var angle: Float = 0f,
+        var center: Vec2 = Vec2(0f, 0f),
+        var textCenter: Vec2 = Vec2(0f, 0f),
+    ) {
+        val imageCorrectionAngle = Math.PI.toFloat() * 2 * (12 - imageInitialSector) / 12
+    }
 
     val items = listOf(
-        Item("Напитки", R.drawable.drinks_icon),
-        Item("Кофе", R.drawable.coffee_icon),
-        Item("Салаты", R.drawable.salats_icon),
-        Item("Закуски", R.drawable.snacks_icon),
-        Item("Бургеры", R.drawable.burger_icon),
-        Item("Горячее", R.drawable.main_dishes_icon),
-        Item("Десерты", R.drawable.deserts_icon),
-        Item("Пицца", R.drawable.pizza_icon),
+        Item("Напитки", R.drawable.drinks_icon, 8),
+        Item("Кофе", R.drawable.coffee_icon, 9),
+        Item("Салаты", R.drawable.salats_icon, 10),
+        Item("Закуски", R.drawable.snacks_icon, 11),
+        Item("Бургеры", R.drawable.burger_icon, 1),
+        Item("Горячее", R.drawable.main_dishes_icon, 2),
+        Item("Десерты", R.drawable.deserts_icon, 3),
+        Item("Пицца", R.drawable.pizza_icon, 4),
     )
 
     var progress = 0
@@ -36,7 +41,8 @@ class FoodMenuViewModel : ViewModel() {
     var radius = 1f
         set(value) {
             field = value
-            iconSide = radius * iconSideRate * 2
+            iconSide = radius * iconSideRate
+            textBoxSize = radius * textSizeRate
             sourcePosition.x = radius * (1f + centerRadiusRate)
             sourcePosition.y = radius
         }
@@ -45,20 +51,24 @@ class FoodMenuViewModel : ViewModel() {
 
     private val sourcePosition: Vec2 = Vec2(0f, 0f)
 
-    private val iconSideRate = 0.1f
+    private val iconSideRate = 0.2f
     private val dxRate = 0.1f
     private val centerRadiusRate = 0.8f
+    private val textCenterRate = 0.5f
+    private val textSizeRate = 0.3f
+    var textBoxSize: Float = 0f
+        private set
 
     fun updateCoordinates() {
         for (idx in 0 until min(items.count(), 12)) {
-            val angle = (2f * Math.PI / 12 * idx + angle) * (progress / 100f)
+            val item = items[idx]
 
-            val center = Vec2(
-                radius * (1f + centerRadiusRate * cos(angle).toFloat()),
-                radius * (1f + centerRadiusRate * sin(angle).toFloat())
-            )
+            item.angle = (2f * Math.PI.toFloat() / 12 * idx + angle) * (progress / 100f)
+
+            val xy = Vec2(cos(item.angle), sin(item.angle))
             //items[idx].center = center * (progress / 100f) + sourcePosition * (1f - progress / 100f)
-            items[idx].center = center
+            item.center = (xy * centerRadiusRate + 1f) * radius
+            item.textCenter = (xy * textCenterRate + 1f) * radius
         }
     }
 
