@@ -1,8 +1,10 @@
 package com.surovtsev.screenfoodmenu
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -25,6 +27,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Density
@@ -53,7 +56,7 @@ fun FoodMenuScreen(
             .padding(1.35.dp)
             .aspectRatio(1f)
             .fillMaxSize()
-            .background(color = Color.White)
+            .background(color = Color.Black)
             .onGloballyPositioned { coordinates -> size = coordinates.size },
         contentAlignment = Alignment.Center,
     ) {
@@ -62,7 +65,7 @@ fun FoodMenuScreen(
             contentAlignment = Alignment.TopStart,
         ) {
             Circle(size)
-            Controls(size, localDensity)
+            Controls(size, localDensity, viewModel)
         }
     }
 }
@@ -87,8 +90,15 @@ fun Circle(
 fun Controls(
     size: IntSize,
     density: Density,
+    viewModel: FoodMenuViewModel,
 ) {
     with(density) {
+        val painterResources = viewModel.items.map {
+            painterResource(id = it)
+        }
+
+        val ctx = LocalContext.current
+
         val currX = remember { mutableStateOf(size.width.toFloat()) }
         val currY = remember { mutableStateOf(size.height.toFloat() / 2) }
         val prevX = remember { mutableStateOf(0f) }
@@ -182,30 +192,54 @@ fun Controls(
                     val x = radiusDp * (1f + centerRadiusRate * cos(angle).toFloat())
                     val y = radiusDp * (1f + centerRadiusRate * sin(angle).toFloat())
 
-                    if (idx % 2 == 0) {
-                        Icon(
-                            painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
-                            contentDescription = "Localized description",
-                            modifier = Modifier
-                                .size(iconSide, iconSide)
-                                .offset(x - iconSide / 2, y - iconSide / 2),
-                            tint = PrimaryColor,
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .offset(x - iconSide / 2, y - iconSide / 2)
-                                .size(iconSide)
-                                .border(1.dp, Color.Black),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(text = "$idx")
+                    if (true) {
+                        if (idx < painterResources.size) {
+                            Icon(
+                                painter = painterResources[idx],
+                                contentDescription = "Localized description",
+                                modifier = Modifier
+                                    .size(iconSide, iconSide)
+                                    .offset(x - iconSide / 2, y - iconSide / 2)
+                                    .clickable {
+                                        Toast
+                                            .makeText(
+                                                ctx,
+                                                "${viewModel.items[idx]}",
+                                                Toast.LENGTH_SHORT
+                                            )
+                                            .show()
+                                    },
+
+                                tint = Color.White,
+                            )
+                        }
+                    }
+                    if (false) {
+                        if (idx % 2 == 0) {
+                            Icon(
+                                painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
+                                contentDescription = "Localized description",
+                                modifier = Modifier
+                                    .size(iconSide, iconSide)
+                                    .offset(x - iconSide / 2, y - iconSide / 2),
+                                tint = PrimaryColor,
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .offset(x - iconSide / 2, y - iconSide / 2)
+                                    .size(iconSide)
+                                    .border(1.dp, Color.Black),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(text = "$idx")
+                            }
                         }
                     }
 
-                    if (false) {
-                        val iconSize = size.width.toDp().div(10)
-                        val dx = 0.dp
+                    if (true) {
+                        val iconSize = size.width.toDp().div(8)
+                        val dx = size.width.toDp() / 30
                         val dy = (size.width.toDp() - iconSize).div(2)
                         Icon(
                             painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
