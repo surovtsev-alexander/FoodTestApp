@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
@@ -43,10 +42,8 @@ import androidx.navigation.NavController
 import com.surovtsev.common.theme.PrimaryColor
 import com.surovtsev.common.viewmodels.FoodMenuViewModel
 import kotlin.math.acos
-import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Composable
@@ -110,7 +107,7 @@ fun Controls(
                 durationMillis = 1000,
                 delayMillis = 500,
                 easing = LinearEasing
-            )
+            ), label = ""
         )
         LaunchedEffect(animated) {
             animated = true
@@ -129,7 +126,7 @@ fun Controls(
             remember { mutableFloatStateOf(-2 * Math.PI.toFloat() * (viewModel.items.count() - 1) / 12 / 2) }
         val center = size.width / 2
 
-        fun CalculateAngle(prevValue: Float, x: Float, y: Float): Float {
+        fun calculateAngle(prevValue: Float, x: Float, y: Float): Float {
             val dx = x - center
             val dy = y - center
             val l = sqrt(dx * dx + dy * dy)
@@ -138,17 +135,17 @@ fun Controls(
             }
             val nX = dx / l
             val aC = acos(nX)
-            if (dy > 0) {
-                return aC
+            return if (dy > 0) {
+                aC
             } else {
-                return 2 * Math.PI.toFloat() - aC
+                2 * Math.PI.toFloat() - aC
             }
         }
 
-        fun RadToGrad(a: Float) = a / Math.PI.toFloat() * 180
-        fun NormalGrad(a: Float) = (a + 540) % 360 - 180
-        fun RadToGradString(a: Float) = "%.2f".format(NormalGrad(RadToGrad(a)))
-        fun NormalRad(a: Float): Float {
+        fun radToGrad(a: Float) = a / Math.PI.toFloat() * 180
+        fun normalGrad(a: Float) = (a + 540) % 360 - 180
+        fun radToGradString(a: Float) = "%.2f".format(normalGrad(radToGrad(a)))
+        fun normalRad(a: Float): Float {
             var res = a
             val piFloat = Math.PI.toFloat()
             while (res < -1 * piFloat) {
@@ -165,52 +162,54 @@ fun Controls(
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectDragGestures(onDragStart = { offset ->
-                        prevX.value = offset.x
-                        prevY.value = offset.y
-                        currX.value = offset.x
-                        currY.value = offset.y
-                        prevAngle.value = CalculateAngle(
-                            prevAngle.value,
-                            currX.value,
-                            currY.value,
+                        prevX.floatValue = offset.x
+                        prevY.floatValue = offset.y
+                        currX.floatValue = offset.x
+                        currY.floatValue = offset.y
+                        prevAngle.floatValue = calculateAngle(
+                            prevAngle.floatValue,
+                            currX.floatValue,
+                            currY.floatValue,
                         )
                     }, onDrag = { _: PointerInputChange, dragAmount: Offset ->
-                        currX.value = (currX.value + dragAmount.x).coerceIn(
+                        currX.floatValue = (currX.floatValue + dragAmount.x).coerceIn(
                             0f, size.width.toFloat() - 50.dp.toPx()
                         )
-                        currY.value = (currY.value + dragAmount.y).coerceIn(
+                        currY.floatValue = (currY.floatValue + dragAmount.y).coerceIn(
                             0f, size.height.toFloat() - 50.dp.toPx()
                         )
-                        currAngle.value = CalculateAngle(
-                            currAngle.value,
-                            currX.value,
-                            currY.value,
+                        currAngle.floatValue = calculateAngle(
+                            currAngle.floatValue,
+                            currX.floatValue,
+                            currY.floatValue,
                         )
-                        diffAngle.value = currAngle.value - prevAngle.value
+                        diffAngle.floatValue = currAngle.floatValue - prevAngle.floatValue
 
                     }, onDragCancel = {
 
                     }, onDragEnd = {
-                        commitedDiffAngle.value = commitedDiffAngle.value + diffAngle.value
-                        diffAngle.value = 0f
+                        commitedDiffAngle.floatValue =
+                            normalRad(commitedDiffAngle.floatValue + diffAngle.floatValue)
+                        diffAngle.floatValue = 0f
                     })
                 },
         ) {
             if (true) {
-                viewModel.radius = size.height.toDp() / 2
-                viewModel.angle = commitedDiffAngle.value + diffAngle.value
+                viewModel.radius = size.height.toFloat() / 2
+                viewModel.angle = commitedDiffAngle.floatValue + diffAngle.floatValue
+                viewModel.progress = progress
 
-                viewModel.UpdateCoordinates()
+                viewModel.updateCoordinates()
 
-                val iconSide = viewModel.iconSide
+                val iconSide = viewModel.iconSide.toDp()
                 for (idx in 0 until min(12, viewModel.items.count())) {
-                    val center = viewModel.items[idx].center
+                    val c = viewModel.items[idx].center
                     Icon(
                         painter = painterResources[idx],
                         contentDescription = "Localized description",
                         modifier = Modifier
                             .size(iconSide, iconSide)
-                            .offset(center.x - iconSide / 2, center.y - iconSide / 2)
+                            .offset(c.x.toDp() - iconSide / 2, c.y.toDp() - iconSide / 2)
                             .clickable {
                                 Toast
                                     .makeText(
@@ -223,67 +222,6 @@ fun Controls(
 
                         tint = Color.White,
                     )
-                }
-
-                if (false) {
-                    val diameterDp = size.height.toDp()
-                    val radiusDp = diameterDp / 2
-
-                    val iconSideRate = 0.1f
-                    val dxRate = 0.1f
-
-                    val centerRadiusRate = 0.8f
-                    val iconSide = diameterDp * iconSideRate
-
-                    for (idx in 0 until min(12, viewModel.items.count())) {
-                        val angle =
-                            2 * Math.PI / 12 * idx + commitedDiffAngle.value + diffAngle.value
-                        val x = radiusDp * (1f + centerRadiusRate * cos(angle).toFloat())
-                        val y = radiusDp * (1f + centerRadiusRate * sin(angle).toFloat())
-
-                        if (true) {
-                            Icon(
-                                painter = painterResources[idx],
-                                contentDescription = "Localized description",
-                                modifier = Modifier
-                                    .size(iconSide, iconSide)
-                                    .offset(x - iconSide / 2, y - iconSide / 2)
-                                    .clickable {
-                                        Toast
-                                            .makeText(
-                                                ctx,
-                                                "${viewModel.items[idx]}",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
-                                    },
-
-                                tint = Color.White,
-                            )
-                        }
-                        if (false) {
-                            if (idx % 2 == 0) {
-                                Icon(
-                                    painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
-                                    contentDescription = "Localized description",
-                                    modifier = Modifier
-                                        .size(iconSide, iconSide)
-                                        .offset(x - iconSide / 2, y - iconSide / 2),
-                                    tint = PrimaryColor,
-                                )
-                            } else {
-                                Box(
-                                    modifier = Modifier
-                                        .offset(x - iconSide / 2, y - iconSide / 2)
-                                        .size(iconSide)
-                                        .border(1.dp, Color.Black),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Text(text = "$idx")
-                                }
-                            }
-                        }
-                    }
                 }
 
                 if (true) {
@@ -300,11 +238,13 @@ fun Controls(
                     )
                 }
 
-                if (true) {
+                if (false) {
                     Text(
-                        text = RadToGradString(prevAngle.value) + " ->" + RadToGradString(currAngle.value) + ": " + RadToGradString(
-                            commitedDiffAngle.value
-                        ) + " " + RadToGradString(diffAngle.value),
+                        text = radToGradString(prevAngle.floatValue) + " ->" + radToGradString(
+                            currAngle.floatValue
+                        ) + ": " + radToGradString(
+                            commitedDiffAngle.floatValue
+                        ) + " " + radToGradString(diffAngle.floatValue),
                         Modifier
                             .align(Alignment.Center)
                             .background(Color.White),
@@ -313,7 +253,7 @@ fun Controls(
                         Modifier
                             .offset {
                                 IntOffset(
-                                    currX.value.roundToInt(), currY.value.roundToInt()
+                                    currX.floatValue.roundToInt(), currY.floatValue.roundToInt()
                                 )
                             }
                             .background(Color.Blue)
@@ -322,17 +262,17 @@ fun Controls(
                     Box(modifier = Modifier
                         .offset {
                             IntOffset(
-                                prevX.value.roundToInt(),
-                                prevY.value.roundToInt(),
+                                prevX.floatValue.roundToInt(),
+                                prevY.floatValue.roundToInt(),
                             )
                         }
                         .background(Color.Red)
                         .size(50.dp))
                 }
 
-                if (false) {
+                if (true) {
                     Text(
-                        text = "${progress}",
+                        text = "$progress",
                         Modifier
                             .align(Alignment.Center)
                             .background(Color.White)

@@ -1,23 +1,17 @@
 package com.surovtsev.common.viewmodels
 
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import com.surovtsev.common.R
+import glm_.vec2.Vec2
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 
 class FoodMenuViewModel : ViewModel() {
-    data class Position(
-        var x: Dp = 0.dp,
-        var y: Dp = 0.dp
-    )
-
     data class Item(
         val caption: String,
         val id: Int,
-        val center: Position = Position(),
+        val center: Vec2 = Vec2(0f, 0f)
     )
 
     val items = listOf(
@@ -39,19 +33,19 @@ class FoodMenuViewModel : ViewModel() {
         set(value) {
             field = value
         }
-    var radius = 1.dp
+    var radius = 1f
         set(value) {
             field = value
             iconSide = radius * iconSideRate * 2
         }
-    var iconSide: Dp = 0.dp
+    var iconSide: Float = 0f
         private set
 
     private val iconSideRate = 0.1f
     private val dxRate = 0.1f
     private val centerRadiusRate = 0.8f
 
-    fun UpdateCoordinates() {
+    fun updateCoordinates() {
         for (idx in 0 until min(items.count(), 12)) {
             val angle = 2f * Math.PI / 12 * idx + angle
 
