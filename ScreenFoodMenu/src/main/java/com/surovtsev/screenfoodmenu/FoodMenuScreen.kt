@@ -1,6 +1,18 @@
 package com.surovtsev.screenfoodmenu
 
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.rememberTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +27,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -97,6 +111,19 @@ fun Controls(
             painterResource(id = it)
         }
 
+        var animated by remember { mutableStateOf(false) }
+        val progress by animateIntAsState(
+            targetValue = if (animated) 100 else 0,
+            animationSpec = tween(
+                durationMillis = 1000,
+                delayMillis = 500,
+                easing = LinearEasing
+            )
+        )
+        LaunchedEffect(animated) {
+            animated = true
+        }
+
         val ctx = LocalContext.current
 
         val currX = remember { mutableStateOf(size.width.toFloat()) }
@@ -139,7 +166,6 @@ fun Controls(
             }
             return res
         }
-
 
         Box(
             modifier = Modifier
@@ -277,6 +303,15 @@ fun Controls(
                         }
                         .background(Color.Red)
                         .size(50.dp))
+                }
+
+                if (true) {
+                    Text(
+                        text = "${progress}",
+                        Modifier
+                            .align(Alignment.Center)
+                            .background(Color.White)
+                    )
                 }
             }
         }
