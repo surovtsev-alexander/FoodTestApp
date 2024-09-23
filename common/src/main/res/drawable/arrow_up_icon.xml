@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Aps>
+	<Group>
+		<Page Width="65" Height="94" PaperTray="0">
+			<Canvas>
+				<Canvas>
+					<Clip>
+						<Path FillMode="Winding">
+							<PathFigure IsClosed="True">
+								<PolyLine LineColor="#FF000000">
+									<Point X="0" Y="94" />
+									<Point X="0" Y="-0.5" />
+								</PolyLine>
+								<PolyLine LineColor="#FF000000">
+									<Point X="0" Y="-0.5" />
+									<Point X="65.25" Y="-0.5" />
+								</PolyLine>
+								<PolyLine LineColor="#FF000000">
+									<Point X="65.25" Y="-0.5" />
+									<Point X="65.25" Y="94" />
+								</PolyLine>
+								<PolyLine LineColor="#FF000000">
+									<Point X="65.25" Y="94" />
+									<Point X="0" Y="94" />
+								</PolyLine>
+							</PathFigure>
+						</Path>
+					</Clip>
+				</Canvas>
+			</Canvas>
+		</Page>
+	</Group>
+</Aps>

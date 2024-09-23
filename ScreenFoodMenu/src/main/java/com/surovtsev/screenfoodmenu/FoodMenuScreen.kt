@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.surovtsev.common.theme.GrayColor
 import com.surovtsev.common.theme.PrimaryColor
@@ -281,7 +280,20 @@ fun Controls(
                         tint = GrayColor,
                     )
                 }
-
+                if (true) {
+                    val iconSize = size.width.toDp().div(8)
+                    val dx = viewModel.radius.toDp() * 2 - size.width.toDp() / 30 - iconSize
+                    val dy = (size.width.toDp() - iconSize).div(2)
+                    Icon(
+                        painter = painterResource(id = com.surovtsev.common.R.drawable.breakfast_icon),
+                        contentDescription = "Localized description",
+                        modifier = Modifier
+                            .size(iconSize, iconSize)
+                            .offset(dx, dy)
+                            .background(Color.Black),
+                        tint = PrimaryColor,
+                    )
+                }
                 if (false) {
                     Text(
                         text = radToGradString(prevAngle.floatValue) + " ->" + radToGradString(
