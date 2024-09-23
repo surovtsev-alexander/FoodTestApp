@@ -4,9 +4,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.interaction.DragInteraction
-import androidx.compose.foundation.interaction.Interaction
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,15 +11,11 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.surovtsev.common.theme.PrimaryColor
 import com.surovtsev.common.viewmodels.FoodMenuViewModel
-import kotlinx.coroutines.launch
 import kotlin.math.acos
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -71,8 +63,6 @@ fun FoodMenuScreen(
         ) {
             Circle(size)
             Controls(size, localDensity)
-            //Drag2DGestures(size)
-            //DragInteractionSample()
         }
     }
 }
@@ -230,7 +220,7 @@ fun Controls(
                 }
             }
 
-            if (true) {
+            if (false) {
                 Text(
                     text = RadToGradString(prevAngle.value) + " ->" + RadToGradString(currAngle.value) + ": " + RadToGradString(
                         commitedDiffAngle.value
@@ -259,174 +249,4 @@ fun Controls(
 
         }
     }
-}
-
-@Composable
-fun Drag2DGestures(size: IntSize) {
-    val currX = remember { mutableStateOf(size.width.toFloat()) }
-    val currY = remember { mutableStateOf(size.height.toFloat() / 2) }
-    val prevX = remember { mutableStateOf(0f) }
-    val prevY = remember { mutableStateOf(9f) }
-    val prevAngle = remember { mutableStateOf(0f) }
-    val currAngle = remember { mutableStateOf(0f) }
-    val diffAngle = remember { mutableStateOf(0f) }
-    val center = size.width / 2
-
-    fun CalculateAngle(prevValue: Float, x: Float, y: Float): Float {
-        val dx = x - center
-        val dy = y - center
-        val l = sqrt(dx * dx + dy * dy)
-        if (l < center / 10) {
-            return prevValue
-        }
-        val nX = dx / l
-        val aC = acos(nX)
-        if (dy > 0) {
-            return aC
-        } else {
-            return 2 * Math.PI.toFloat() - aC
-        }
-    }
-
-    fun RadToGrad(a: Float) = a / Math.PI.toFloat() * 180
-    fun NormalGrad(a: Float) = (a + 540) % 360 - 180
-    fun RadToGradString(a: Float) = "%.2f".format(NormalGrad(RadToGrad(a)))
-
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectDragGestures(onDragStart = { offset ->
-                    prevX.value = offset.x
-                    prevY.value = offset.y
-                    currX.value = offset.x
-                    currY.value = offset.y
-                    prevAngle.value = CalculateAngle(
-                        prevAngle.value,
-                        currX.value,
-                        currY.value,
-                    )
-                }, onDrag = { _: PointerInputChange, dragAmount: Offset ->
-                    currX.value = (currX.value + dragAmount.x).coerceIn(
-                        0f, size.width.toFloat() - 50.dp.toPx()
-                    )
-                    currY.value = (currY.value + dragAmount.y).coerceIn(
-                        0f, size.height.toFloat() - 50.dp.toPx()
-                    )
-                    currAngle.value = CalculateAngle(
-                        currAngle.value,
-                        currX.value,
-                        currY.value,
-                    )
-                    diffAngle.value = currAngle.value - prevAngle.value
-
-                }, onDragCancel = {
-
-                }, onDragEnd = {
-                })
-            },
-    ) {
-        Text(
-            text = RadToGradString(prevAngle.value) + " ->" + RadToGradString(currAngle.value) + ": " + RadToGradString(
-                diffAngle.value
-            ), Modifier.align(Alignment.Center)
-        )
-        Box(
-            Modifier
-                .offset { IntOffset(currX.value.roundToInt(), currY.value.roundToInt()) }
-                .background(Color.Blue)
-                .size(50.dp))
-
-        Box(modifier = Modifier
-            .offset {
-                IntOffset(
-                    prevX.value.roundToInt(),
-                    prevY.value.roundToInt(),
-                )
-            }
-            .background(Color.Red)
-            .size(50.dp))
-    }
-}
-
-
-@Composable
-private fun DragInteractionSample() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center, content = {
-
-        val interactionSource = remember { MutableInteractionSource() }
-        val interactions = remember { mutableStateListOf<Interaction>() }
-        var text by remember { mutableStateOf("") }
-
-        LaunchedEffect(interactionSource) {
-            interactionSource.interactions.collect { interaction ->
-                when (interaction) {
-                    is DragInteraction.Start -> {
-                        text = "Drag Start"
-                    }
-
-                    is DragInteraction.Stop -> {
-                        text = "Drag Stop"
-                    }
-
-                    is DragInteraction.Cancel -> {
-                        text = "Drag Cancel"
-                    }
-                }
-            }
-        }
-
-        val coroutineScope = rememberCoroutineScope()
-
-        var offsetX by remember { mutableStateOf(0f) }
-        var offsetY by remember { mutableStateOf(0f) }
-
-        val modifier = Modifier
-            .offset {
-                IntOffset(
-                    x = offsetX.roundToInt(), y = offsetY.roundToInt()
-                )
-            }
-            .size(60.dp)
-            .pointerInput(Unit) {
-
-                var interaction: DragInteraction.Start? = null
-                detectDragGestures(onDragStart = {
-                    coroutineScope.launch {
-                        interaction = DragInteraction.Start()
-                        interaction?.run {
-                            interactionSource.emit(this)
-                        }
-
-                    }
-                }, onDrag = { change: PointerInputChange, dragAmount: Offset ->
-                    offsetX += dragAmount.x
-                    offsetY += dragAmount.y
-
-                }, onDragCancel = {
-                    coroutineScope.launch {
-                        interaction?.run {
-                            interactionSource.emit(DragInteraction.Cancel(this))
-                        }
-                    }
-                }, onDragEnd = {
-                    coroutineScope.launch {
-                        interaction?.run {
-                            interactionSource.emit(DragInteraction.Stop(this))
-                        }
-                    }
-                })
-            }
-
-        Surface(
-            modifier = modifier,
-            interactionSource = interactionSource,
-            onClick = {},
-            content = {},
-            color = Color.Green
-        )
-
-        Text(text = text)
-    })
 }
