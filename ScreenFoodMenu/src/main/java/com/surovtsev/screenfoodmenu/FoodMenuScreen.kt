@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
@@ -37,8 +36,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
@@ -47,11 +44,15 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.surovtsev.common.theme.GrayColor
 import com.surovtsev.common.theme.PrimaryColor
 import com.surovtsev.common.viewmodels.FoodMenuViewModel
+import glm_.vec2.Vec2
 import kotlin.math.acos
+import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Composable
@@ -225,7 +226,7 @@ fun Controls(
                                     )
                                     .show()
                             },
-                        tint = Color.White,
+                        tint = GrayColor,
                     )
                     val tc = item.textCenter
                     val textBoxSize = viewModel.textBoxSize.toDp()
@@ -241,10 +242,11 @@ fun Controls(
                         Text(
                             text = viewModel.items[idx].caption,
                             modifier = Modifier.align(Alignment.CenterEnd), style = TextStyle(
-                                fontSize = 18.sp,
+                                //fontSize = 18.sp,
+                                fontSize = (viewModel.itemCaptionFontSizeRate * viewModel.iconSide).toSp(),
                                 //fontFamily = FontFamily(Font(R.font.if_kica)),
                                 fontWeight = FontWeight(400),
-                                color = Color(0xFFA3A3A3),
+                                color = GrayColor,
                                 textAlign = TextAlign.Right,
                             )
                         )
@@ -263,6 +265,20 @@ fun Controls(
                             .offset(dx, dy)
                             .background(Color.Black),
                         tint = PrimaryColor,
+                    )
+                }
+                if (true) {
+                    val iconSize = size.width.toDp().div(14)
+                    val angle = 2f * Math.PI.toFloat() / 12 * 5.3f
+                    val xy = (Vec2(cos(angle), sin(angle)) * 0.83f + 1f) * viewModel.radius
+                    Icon(
+                        painter = painterResource(id = com.surovtsev.common.R.drawable.home_icon),
+                        contentDescription = "Localized description",
+                        modifier = Modifier
+                            .size(iconSize, iconSize)
+                            .offset(xy.x.toDp() - iconSize / 2, xy.y.toDp() - iconSize / 2)
+                            .background(Color.Black),
+                        tint = GrayColor,
                     )
                 }
 
@@ -310,10 +326,11 @@ fun Controls(
                 Text(
                     text = "Завтраки",
                     style = TextStyle(
-                        fontSize = 32.sp,
+                        // fontSize = 32.sp,
+                        fontSize = viewModel.iconSide.toSp() * viewModel.orderCaptionFontSizeRate,
                         //fontFamily = FontFamily(Font(R.font.if_kica)),
                         fontWeight = FontWeight(400),
-                        color = Color(0xFFFAA926),
+                        color = PrimaryColor,
                         textAlign = TextAlign.Center,
                     ),
                     modifier = Modifier.align(Alignment.Center),

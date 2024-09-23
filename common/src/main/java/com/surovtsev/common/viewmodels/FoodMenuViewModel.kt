@@ -56,6 +56,8 @@ class FoodMenuViewModel : ViewModel() {
     private val centerRadiusRate = 0.8f
     private val textCenterRate = 0.5f
     private val textSizeRate = 0.3f
+    val itemCaptionFontSizeRate = 0.3f
+    val orderCaptionFontSizeRate = 0.6f
     var textBoxSize: Float = 0f
         private set
 
