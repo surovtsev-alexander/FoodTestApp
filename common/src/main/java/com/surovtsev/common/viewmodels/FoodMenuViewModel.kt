@@ -27,11 +27,7 @@ class FoodMenuViewModel : ViewModel() {
 
     var progress = 0
         set(value) {
-            field = if (value <= 0) {
-                1
-            } else {
-                value
-            }
+            field = value
         }
     var angle = 0f
         set(value) {
@@ -55,13 +51,14 @@ class FoodMenuViewModel : ViewModel() {
 
     fun updateCoordinates() {
         for (idx in 0 until min(items.count(), 12)) {
-            val angle = 2f * Math.PI / 12 * idx + angle
+            val angle = (2f * Math.PI / 12 * idx + angle) * (progress / 100f)
 
             val center = Vec2(
                 radius * (1f + centerRadiusRate * cos(angle).toFloat()),
                 radius * (1f + centerRadiusRate * sin(angle).toFloat())
             )
-            items[idx].center = center * (progress / 100f) + sourcePosition * (1f - progress / 100f)
+            //items[idx].center = center * (progress / 100f) + sourcePosition * (1f - progress / 100f)
+            items[idx].center = center
         }
     }
 
