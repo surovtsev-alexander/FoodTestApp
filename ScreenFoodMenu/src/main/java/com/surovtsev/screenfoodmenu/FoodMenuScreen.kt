@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -126,14 +127,15 @@ fun Controls(
 
         val ctx = LocalContext.current
 
-        val currX = remember { mutableStateOf(size.width.toFloat()) }
-        val currY = remember { mutableStateOf(size.height.toFloat() / 2) }
-        val prevX = remember { mutableStateOf(0f) }
-        val prevY = remember { mutableStateOf(9f) }
-        val prevAngle = remember { mutableStateOf(0f) }
-        val currAngle = remember { mutableStateOf(0f) }
-        val diffAngle = remember { mutableStateOf(0f) }
-        val commitedDiffAngle = remember { mutableStateOf(0f) }
+        val currX = remember { mutableFloatStateOf(size.width.toFloat()) }
+        val currY = remember { mutableFloatStateOf(size.height.toFloat() / 2) }
+        val prevX = remember { mutableFloatStateOf(0f) }
+        val prevY = remember { mutableFloatStateOf(9f) }
+        val prevAngle = remember { mutableFloatStateOf(0f) }
+        val currAngle = remember { mutableFloatStateOf(0f) }
+        val diffAngle = remember { mutableFloatStateOf(0f) }
+        val commitedDiffAngle =
+            remember { mutableFloatStateOf(-2 * Math.PI.toFloat() * (viewModel.items.count() - 1) / 12 / 2) }
         val center = size.width / 2
 
         fun CalculateAngle(prevValue: Float, x: Float, y: Float): Float {
@@ -278,11 +280,14 @@ fun Controls(
                     }
                 }
 
-                if (false) {
+                if (true) {
                     Text(
                         text = RadToGradString(prevAngle.value) + " ->" + RadToGradString(currAngle.value) + ": " + RadToGradString(
                             commitedDiffAngle.value
-                        ) + " " + RadToGradString(diffAngle.value), Modifier.align(Alignment.Center)
+                        ) + " " + RadToGradString(diffAngle.value),
+                        Modifier
+                            .align(Alignment.Center)
+                            .background(Color.White),
                     )
                     Box(
                         Modifier
@@ -305,7 +310,7 @@ fun Controls(
                         .size(50.dp))
                 }
 
-                if (true) {
+                if (false) {
                     Text(
                         text = "${progress}",
                         Modifier
