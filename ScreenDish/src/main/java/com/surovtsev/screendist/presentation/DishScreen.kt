@@ -1,22 +1,22 @@
 package com.surovtsev.screendist.presentation
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.navigation.NavController
-import com.surovtsev.common.theme.GrayColor
 import com.surovtsev.common.ui_elements.generalcontrols.GeneralControls
 import com.surovtsev.common.ui_elements.kolobokscreen.KolobokScreen
 import com.surovtsev.common.ui_elements.progress.Progress
@@ -32,6 +32,10 @@ fun DishScreen(
     navController: NavController,
 ) {
     val localDensity = LocalDensity.current
+
+    LaunchedEffect(Unit) {
+        viewModel.switchTo(DishViewModel.State.Menu)
+    }
 
     KolobokScreen { screenSize ->
         ScreenContent(
@@ -85,49 +89,76 @@ fun BoxScope.Controls(
     viewModel.progress = progress
     viewModel.updateCoordinates()
 
-    Buttons(
-        viewModel = viewModel,
-        density = density,
-        navController = navController,
-    )
+    val state by viewModel.state.collectAsState()
+
+    if (state == DishViewModel.State.Menu) {
+        MenuButtons(
+            viewModel = viewModel,
+            density = density,
+        )
+    } else {
+        Dish(
+            viewModel = viewModel,
+            density = density
+        )
+    }
 
     GeneralControls(screenSize, density)
 }
 
 @Composable
-fun Buttons(
+fun Dish(
     viewModel: DishViewModel,
     density: Density,
-    navController: NavController,
 ) {
-    val ctx = LocalContext.current
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable {
+                viewModel.switchTo(DishViewModel.State.Menu)
+            },
+    ) {
+    }
+}
 
+@Composable
+fun MenuButtons(
+    viewModel: DishViewModel,
+    density: Density,
+) {
     val painterResources = viewModel.items.map {
         painterResource(id = it.id)
     }
 
-    with(density) {
-        val iconSide = viewModel.iconSide.toDp()
-        for (idx in 0 until viewModel.itemsCountToDisplay) {
-            val item = viewModel.items[idx]
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable {
+                viewModel.switchTo(DishViewModel.State.Dish)
+            },
+    ) {
+        with(density) {
+            val iconSide = viewModel.iconSide.toDp()
+            for (idx in 0 until viewModel.itemsCountToDisplay) {
+                val item = viewModel.items[idx]
+                val c = item.center
+                Image(
+                    painter = painterResources[idx],
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(iconSide, iconSide)
+                        .offset(c.x.toDp() - iconSide / 2, c.y.toDp() - iconSide / 2)
+                )
+            }
+            val item = viewModel.centerItem
             val c = item.center
             Image(
-                painter = painterResources[idx],
+                painter = painterResource(id = item.id),
                 contentDescription = "",
                 modifier = Modifier
                     .size(iconSide, iconSide)
                     .offset(c.x.toDp() - iconSide / 2, c.y.toDp() - iconSide / 2)
             )
         }
-        val item = viewModel.centerItem
-        val c = item.center
-        Image(
-            painter = painterResource(id = item.id),
-            contentDescription = "",
-            modifier = Modifier
-                .size(iconSide, iconSide)
-                .offset(c.x.toDp() - iconSide / 2, c.y.toDp() - iconSide / 2)
-        )
-
     }
 }
