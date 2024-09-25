@@ -234,48 +234,8 @@ fun Controls(
                     }
                 }
 
-                if (true) {
-                    val iconSize = size.width.toDp().div(8)
-                    val dx = size.width.toDp() / 30
-                    val dy = (size.width.toDp() - iconSize).div(2)
-                    Icon(
-                        painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
-                        contentDescription = "",
-                        modifier = Modifier
-                            .size(iconSize, iconSize)
-                            .offset(dx, dy)
-                            .background(Color.Black),
-                        tint = PrimaryColor,
-                    )
-                }
-                if (true) {
-                    val iconSize = size.width.toDp().div(14)
-                    val angle = 2f * Math.PI.toFloat() / 12 * 5.3f
-                    val xy = (Vec2(cos(angle), sin(angle)) * 0.83f + 1f) * viewModel.radius
-                    Icon(
-                        painter = painterResource(id = com.surovtsev.common.R.drawable.home_icon),
-                        contentDescription = "",
-                        modifier = Modifier
-                            .size(iconSize, iconSize)
-                            .offset(xy.x.toDp() - iconSize / 2, xy.y.toDp() - iconSize / 2)
-                            .background(Color.Black),
-                        tint = GrayColor,
-                    )
-                }
-                if (true) {
-                    val iconSize = size.width.toDp().div(8)
-                    val dx = viewModel.radius.toDp() * 2 - size.width.toDp() / 30 - iconSize
-                    val dy = (size.width.toDp() - iconSize).div(2)
-                    Icon(
-                        painter = painterResource(id = com.surovtsev.common.R.drawable.breakfast_icon),
-                        contentDescription = "",
-                        modifier = Modifier
-                            .size(iconSize, iconSize)
-                            .offset(dx, dy)
-                            .background(Color.Black),
-                        tint = PrimaryColor,
-                    )
-                }
+                BasicUiControls(size, density)
+
                 if (false) {
                     Text(
                         text = radToGradString(prevAngle.floatValue) + " ->" + radToGradString(
@@ -330,6 +290,57 @@ fun Controls(
                     modifier = Modifier.align(Alignment.Center),
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun BasicUiControls(
+    size: IntSize,
+    density: Density
+) {
+    with(density) {
+        run {
+            val iconSize = size.width.toDp().div(8)
+            val dx = size.width.toDp() / 30
+            val dy = (size.width.toDp() - iconSize).div(2)
+            Icon(
+                painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
+                contentDescription = "",
+                modifier = Modifier
+                    .size(iconSize, iconSize)
+                    .offset(dx, dy)
+                    .background(Color.Black),
+                tint = PrimaryColor,
+            )
+        }
+        run {
+            val iconSize = size.width.toDp().div(14)
+            val angle = 2f * Math.PI.toFloat() / 12 * 5.3f
+            val xy = (Vec2(cos(angle), sin(angle)) * 0.83f + 1f) * size.width / 2
+            Icon(
+                painter = painterResource(id = com.surovtsev.common.R.drawable.home_icon),
+                contentDescription = "",
+                modifier = Modifier
+                    .size(iconSize, iconSize)
+                    .offset(xy.x.toDp() - iconSize / 2, xy.y.toDp() - iconSize / 2)
+                    .background(Color.Black),
+                tint = GrayColor,
+            )
+        }
+        run {
+            val iconSize = size.width.toDp().div(8)
+            val dx = size.width.toDp() - size.width.toDp() / 30 - iconSize
+            val dy = (size.width.toDp() - iconSize).div(2)
+            Icon(
+                painter = painterResource(id = com.surovtsev.common.R.drawable.breakfast_icon),
+                contentDescription = "",
+                modifier = Modifier
+                    .size(iconSize, iconSize)
+                    .offset(dx, dy)
+                    .background(Color.Black),
+                tint = PrimaryColor,
+            )
         }
     }
 }
