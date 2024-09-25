@@ -65,9 +65,6 @@ class FoodMenuViewModel : ViewModel() {
         private set
 
     fun updateCoordinates() {
-
-        val itemsCountToDisplay = min(items.count(), 12)
-
         val halfItems = (itemsCountToDisplay + 1) / 2
 
         for (idx in 0 until itemsCountToDisplay) {
