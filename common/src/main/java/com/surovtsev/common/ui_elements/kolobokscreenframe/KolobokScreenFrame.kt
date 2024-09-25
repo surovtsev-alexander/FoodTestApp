@@ -20,6 +20,7 @@ import com.surovtsev.common.theme.PrimaryColor
 @Composable
 fun KolobokScreenFrame(
     screenSize: IntSize,
+    screenContent: @Composable (screenSize: IntSize,) -> Unit,
 ) {
     Image(
         painter = painterResource(id = com.surovtsev.common.R.drawable.background),
@@ -40,4 +41,6 @@ fun KolobokScreenFrame(
             drawRect(SolidColor(Color.Black))
         }
     }
+
+    screenContent(screenSize)
 }

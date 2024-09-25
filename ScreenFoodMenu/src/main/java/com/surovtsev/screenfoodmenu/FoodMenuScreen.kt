@@ -1,7 +1,6 @@
 package com.surovtsev.screenfoodmenu
 
 import android.widget.Toast
-import androidx.annotation.Dimension
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -52,7 +51,8 @@ import com.surovtsev.common.ui_elements.kolobokscreenframe.KolobokScreenFrame
 import com.surovtsev.common.ui_elements.progress.Progress
 import com.surovtsev.common.ui_elements.progress.ProgressContext
 import com.surovtsev.common.viewmodels.FoodMenuViewModel
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -61,7 +61,7 @@ fun FoodMenuScreen(
     viewModel: FoodMenuViewModel,
     navController: NavController,
 ) {
-    var size by remember { mutableStateOf(IntSize.Zero) }
+    var screenSize by remember { mutableStateOf(IntSize.Zero) }
     val localDensity = LocalDensity.current
 
     Box(
@@ -70,200 +70,270 @@ fun FoodMenuScreen(
             .aspectRatio(1f)
             .fillMaxSize()
             .background(color = Color.White)
-            .onGloballyPositioned { coordinates -> size = coordinates.size },
+            .onGloballyPositioned { coordinates -> screenSize = coordinates.size },
         contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopStart,
         ) {
-            KolobokScreenFrame(size)
-            Controls(size, localDensity, viewModel)
+            KolobokScreenFrame(screenSize) { screenSize ->
+                ScreenContent(
+                    screenSize = screenSize,
+                    density = localDensity,
+                    viewModel = viewModel,
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun ScreenContent(
+    screenSize: IntSize,
+    density: Density,
+    viewModel: FoodMenuViewModel,
+) {
+    val rotationContext = RotationContext(
+        -2 * Math.PI.toFloat() * (viewModel.items.count() - 1) / 12 / 2
+    )
+
+    Controls(
+        screenSize = screenSize,
+        rotationContext = rotationContext,
+    ) {
+        Content(
+            screenSize = screenSize,
+            viewModel = viewModel,
+            rotationContext = rotationContext,
+            density = density,
+        )
+
+        GeneralControls(screenSize, density)
+    }
+}
+
+class RotationContext(initialAngle: Float) {
+    private val _diffAngle = MutableStateFlow(0f)
+    val diffAngle = _diffAngle.asStateFlow()
+
+    private val _commitedDiffAngle = MutableStateFlow(initialAngle)
+    val commitedDiffAngle = _commitedDiffAngle.asStateFlow()
+
+    fun updateDiffAngle(value: Float) {
+        _diffAngle.value = value
+    }
+
+    fun updateCommitedDiffAngle(value: Float) {
+        _commitedDiffAngle.value = value
     }
 }
 
 @Composable
 fun Controls(
-    size: IntSize,
-    density: Density,
-    viewModel: FoodMenuViewModel,
+    screenSize: IntSize,
+    rotationContext: RotationContext,
+    content: @Composable BoxScope.() -> Unit,
 ) {
-    with(density) {
-        val painterResources = viewModel.items.map {
-            painterResource(id = it.id)
-        }
+    val currX = remember { mutableFloatStateOf(screenSize.width.toFloat()) }
+    val currY = remember { mutableFloatStateOf(screenSize.height.toFloat() / 2) }
+    val prevX = remember { mutableFloatStateOf(0f) }
+    val prevY = remember { mutableFloatStateOf(9f) }
+    val prevAngle = remember { mutableFloatStateOf(0f) }
+    val currAngle = remember { mutableFloatStateOf(0f) }
 
-        val progressContext = ProgressContext()
-        Progress(
-            context = progressContext,
-            durationMs = 1000,
-            delayMs = 500,
-        )
-        val progress by progressContext.progress.collectAsState()
+    val diffAngle by rotationContext.diffAngle.collectAsState()
+    val commitedDiffAngle by rotationContext.commitedDiffAngle.collectAsState()
 
-        val ctx = LocalContext.current
+    val radius = screenSize.width.toFloat() / 2
 
-        val currX = remember { mutableFloatStateOf(size.width.toFloat()) }
-        val currY = remember { mutableFloatStateOf(size.height.toFloat() / 2) }
-        val prevX = remember { mutableFloatStateOf(0f) }
-        val prevY = remember { mutableFloatStateOf(9f) }
-        val prevAngle = remember { mutableFloatStateOf(0f) }
-        val currAngle = remember { mutableFloatStateOf(0f) }
-        val diffAngle = remember { mutableFloatStateOf(0f) }
-        val commitedDiffAngle =
-            remember { mutableFloatStateOf(-2 * Math.PI.toFloat() * (viewModel.items.count() - 1) / 12 / 2) }
-        val radius = size.width.toFloat() / 2
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectDragGestures(onDragStart = { offset ->
-                        prevX.floatValue = offset.x
-                        prevY.floatValue = offset.y
-                        currX.floatValue = offset.x
-                        currY.floatValue = offset.y
-                        prevAngle.floatValue = calculateAngle(
-                            prevAngle.floatValue,
-                            currX.floatValue,
-                            currY.floatValue,
-                            radius,
-                        )
-                    }, onDrag = { _: PointerInputChange, dragAmount: Offset ->
-                        currX.floatValue = (currX.floatValue + dragAmount.x).coerceIn(
-                            0f, size.width.toFloat() - 50.dp.toPx()
-                        )
-                        currY.floatValue = (currY.floatValue + dragAmount.y).coerceIn(
-                            0f, size.height.toFloat() - 50.dp.toPx()
-                        )
-                        currAngle.floatValue = calculateAngle(
-                            currAngle.floatValue,
-                            currX.floatValue,
-                            currY.floatValue,
-                            radius,
-                        )
-                        diffAngle.floatValue = currAngle.floatValue - prevAngle.floatValue
-
-                    }, onDragCancel = {
-
-                    }, onDragEnd = {
-                        commitedDiffAngle.floatValue =
-                            normalRad(commitedDiffAngle.floatValue + diffAngle.floatValue)
-                        diffAngle.floatValue = 0f
-                    })
-                },
-        ) {
-            viewModel.radius = size.height.toFloat() / 2
-            viewModel.angle = commitedDiffAngle.floatValue + diffAngle.floatValue
-            viewModel.progress = progress
-
-            viewModel.updateCoordinates()
-
-            val iconSide = viewModel.iconSide.toDp()
-            for (idx in 0 until min(12, viewModel.items.count())) {
-                val item = viewModel.items[idx]
-                val c = item.center
-                Icon(
-                    painter = painterResources[idx],
-                    contentDescription = "",
-                    modifier = Modifier
-                        .size(iconSide, iconSide)
-                        .offset(c.x.toDp() - iconSide / 2, c.y.toDp() - iconSide / 2)
-                        //.background(color = Color(0xFFA3A3A3))
-                        .rotate(radToGrad(item.imageCorrectionAngle + item.angle))
-                        .clickable {
-                            Toast
-                                .makeText(
-                                    ctx, "${viewModel.items[idx]}", Toast.LENGTH_SHORT
-                                )
-                                .show()
-                        },
-                    tint = GrayColor,
-                )
-                val tc = item.textCenter
-                val textBoxSize = viewModel.textBoxSize.toDp()
-                Box(
-                    modifier = Modifier
-                        .size(textBoxSize, textBoxSize)
-                        .offset(
-                            tc.x.toDp() - textBoxSize / 2, tc.y.toDp() - textBoxSize / 2
-                        )
-                        .rotate(radToGrad(item.angle)),
-                ) {
-                    Text(
-                        text = viewModel.items[idx].caption,
-                        modifier = Modifier.align(Alignment.CenterEnd),
-                        style = TextStyle(
-                            //fontSize = 18.sp,
-                            fontSize = (viewModel.itemCaptionFontSizeRate * viewModel.iconSide).toSp(),
-                            //fontFamily = FontFamily(Font(R.font.if_kica)),
-                            fontWeight = FontWeight(400),
-                            color = GrayColor,
-                            textAlign = TextAlign.Right,
-                        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectDragGestures(onDragStart = { offset ->
+                    prevX.floatValue = offset.x
+                    prevY.floatValue = offset.y
+                    currX.floatValue = offset.x
+                    currY.floatValue = offset.y
+                    prevAngle.floatValue = calculateAngle(
+                        prevAngle.floatValue,
+                        currX.floatValue,
+                        currY.floatValue,
+                        radius,
                     )
-                }
-            }
+                }, onDrag = { _: PointerInputChange, dragAmount: Offset ->
+                    currX.floatValue = (currX.floatValue + dragAmount.x).coerceIn(
+                        0f, screenSize.width.toFloat() - 50.dp.toPx()
+                    )
+                    currY.floatValue = (currY.floatValue + dragAmount.y).coerceIn(
+                        0f, screenSize.height.toFloat() - 50.dp.toPx()
+                    )
+                    currAngle.floatValue = calculateAngle(
+                        currAngle.floatValue,
+                        currX.floatValue,
+                        currY.floatValue,
+                        radius,
+                    )
+                    rotationContext.updateDiffAngle(
+                        currAngle.floatValue - prevAngle.floatValue
+                    )
 
-            Text(
-                text = "Завтраки",
-                style = TextStyle(
-                    // fontSize = 32.sp,
-                    fontSize = viewModel.iconSide.toSp() * viewModel.orderCaptionFontSizeRate,
-                    //fontFamily = FontFamily(Font(R.font.if_kica)),
-                    fontWeight = FontWeight(400),
-                    color = PrimaryColor,
-                    textAlign = TextAlign.Center,
-                ),
-                modifier = Modifier.align(Alignment.Center),
-            )
+                }, onDragCancel = {
 
-            GeneralControls(size, density)
+                }, onDragEnd = {
+                    rotationContext.updateCommitedDiffAngle(
+                        normalRad(commitedDiffAngle + diffAngle)
+                    )
+                    rotationContext.updateDiffAngle(0f)
+                })
+            },
+    ) {
 
-            DebugControls(
-                prevAngle,
-                currAngle,
-                diffAngle,
-                commitedDiffAngle,
-                currX,
-                currY,
-                prevX,
-                prevY,
-                progressContext.progress,
-            )
-        }
+        content()
+
+        DebugControls(
+            prevAngle = prevAngle,
+            currAngle = currAngle,
+            rotationContext = rotationContext,
+            currX = currX,
+            currY = currY,
+            prevX = prevX,
+            prevY = prevY,
+        )
     }
 }
 
 @Composable
-fun Content(
+fun BoxScope.Content(
     screenSize: IntSize,
-    dimension: Dimension,
     viewModel: FoodMenuViewModel,
+    rotationContext: RotationContext,
+    density: Density,
 ) {
+    val progressContext = ProgressContext()
+    Progress(
+        context = progressContext,
+        durationMs = 1000,
+        delayMs = 500,
+    )
 
+    val ctx = LocalContext.current
+
+    val progress by progressContext.progress.collectAsState()
+
+    val painterResources = viewModel.items.map {
+        painterResource(id = it.id)
+    }
+
+    val commitedDiffAngle by rotationContext.commitedDiffAngle.collectAsState()
+    val diffAngle by rotationContext.diffAngle.collectAsState()
+
+    viewModel.radius = screenSize.height.toFloat() / 2
+    viewModel.angle = commitedDiffAngle + diffAngle
+    viewModel.progress = progress
+
+    viewModel.updateCoordinates()
+
+    with(density) {
+        val iconSide = viewModel.iconSide.toDp()
+        for (idx in 0 until min(12, viewModel.items.count())) {
+            val item = viewModel.items[idx]
+            val c = item.center
+            Icon(
+                painter = painterResources[idx],
+                contentDescription = "",
+                modifier = Modifier
+                    .size(iconSide, iconSide)
+                    .offset(c.x.toDp() - iconSide / 2, c.y.toDp() - iconSide / 2)
+                    //.background(color = Color(0xFFA3A3A3))
+                    .rotate(radToGrad(item.imageCorrectionAngle + item.angle))
+                    .clickable {
+                        Toast
+                            .makeText(
+                                ctx, "${viewModel.items[idx]}", Toast.LENGTH_SHORT
+                            )
+                            .show()
+                    },
+                tint = GrayColor,
+            )
+            val tc = item.textCenter
+            val textBoxSize = viewModel.textBoxSize.toDp()
+            Box(
+                modifier = Modifier
+                    .size(textBoxSize, textBoxSize)
+                    .offset(
+                        tc.x.toDp() - textBoxSize / 2, tc.y.toDp() - textBoxSize / 2
+                    )
+                    .rotate(radToGrad(item.angle)),
+            ) {
+                Text(
+                    text = viewModel.items[idx].caption,
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    style = TextStyle(
+                        //fontSize = 18.sp,
+                        fontSize = (viewModel.itemCaptionFontSizeRate * viewModel.iconSide).toSp(),
+                        //fontFamily = FontFamily(Font(R.font.if_kica)),
+                        fontWeight = FontWeight(400),
+                        color = GrayColor,
+                        textAlign = TextAlign.Right,
+                    )
+                )
+            }
+        }
+
+        Text(
+            text = "Завтраки",
+            style = TextStyle(
+                // fontSize = 32.sp,
+                fontSize = viewModel.iconSide.toSp() * viewModel.orderCaptionFontSizeRate,
+                //fontFamily = FontFamily(Font(R.font.if_kica)),
+                fontWeight = FontWeight(400),
+                color = PrimaryColor,
+                textAlign = TextAlign.Center,
+            ),
+            modifier = Modifier.align(Alignment.Center),
+        )
+
+        DebugXX(progressContext = progressContext)
+    }
+}
+
+@Composable
+fun BoxScope.DebugXX(
+    progressContext: ProgressContext,
+) {
+    if (false) {
+        val progress = progressContext.progress.collectAsState()
+        Text(
+            text = "${progress.value}",
+            Modifier
+                .align(Alignment.Center)
+                .background(Color.White)
+        )
+    }
 }
 
 @Composable
 fun BoxScope.DebugControls(
     prevAngle: FloatState,
     currAngle: FloatState,
-    diffAngle: FloatState,
-    commitedDiffAngle: FloatState,
+    rotationContext: RotationContext,
     currX: FloatState,
     currY: FloatState,
     prevX: FloatState,
     prevY: FloatState,
-    progress: StateFlow<Int>,
 ) {
     if (false) {
+        val commitedDiffAngle by rotationContext.commitedDiffAngle.collectAsState()
+        val diffAngle by rotationContext.diffAngle.collectAsState()
+
         Text(
             text = radToGradString(prevAngle.floatValue) + " ->" + radToGradString(
                 currAngle.floatValue
             ) + ": " + radToGradString(
-                commitedDiffAngle.floatValue
-            ) + " " + radToGradString(diffAngle.floatValue),
+                commitedDiffAngle
+            ) + " " + radToGradString(diffAngle),
             Modifier
                 .align(Alignment.Center)
                 .background(Color.White),
@@ -287,15 +357,6 @@ fun BoxScope.DebugControls(
             }
             .background(Color.Red)
             .size(50.dp))
-    }
-
-    if (false) {
-        Text(
-            text = "${progress.value}",
-            Modifier
-                .align(Alignment.Center)
-                .background(Color.White)
-        )
     }
 }
 
