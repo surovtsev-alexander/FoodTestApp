@@ -1,0 +1,32 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:viewportWidth="1080"
+    android:viewportHeight="1080"
+    android:width="1080dp"
+    android:height="1080dp">
+    <path
+        android:pathData="M540 1080C838.234 1080 1080 838.234 1080 540C1080 241.766 838.234 0 540 0C241.766 0 0 241.766 0 540C0 838.234 241.766 1080 540 1080ZM540 1070C832.711 1070 1070 832.711 1070 540C1070 247.289 832.711 10 540 10C247.289 10 10 247.289 10 540C10 832.711 247.289 1070 540 1070Z"
+        android:fillType="evenOdd">
+        <aapt:attr
+            name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="540"
+                android:centerY="540"
+                android:gradientRadius="539.008"
+                android:tileMode="clamp">
+                <item
+                    android:color="#000000"
+                    android:offset="0.918905" />
+                <item
+                    android:color="#FAA926"
+                    android:offset="0.983692" />
+                <item
+                    android:color="#FFC66B"
+                    android:offset="0.988817" />
+                <item
+                    android:color="#FAA926"
+                    android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

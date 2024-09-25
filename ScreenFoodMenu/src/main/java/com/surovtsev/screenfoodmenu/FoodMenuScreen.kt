@@ -5,6 +5,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -18,17 +19,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -47,6 +54,8 @@ import com.surovtsev.common.theme.GrayColor
 import com.surovtsev.common.theme.PrimaryColor
 import com.surovtsev.common.viewmodels.FoodMenuViewModel
 import glm_.vec2.Vec2
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.acos
 import kotlin.math.cos
 import kotlin.math.min
@@ -67,7 +76,7 @@ fun FoodMenuScreen(
             .padding(1.35.dp)
             .aspectRatio(1f)
             .fillMaxSize()
-            .background(color = Color.Black)
+            .background(color = Color.White)
             .onGloballyPositioned { coordinates -> size = coordinates.size },
         contentAlignment = Alignment.Center,
     ) {
@@ -85,16 +94,57 @@ fun FoodMenuScreen(
 fun Circle(
     size: IntSize,
 ) {
-    Canvas(modifier = Modifier.fillMaxSize(), onDraw = {
-        val stroke = 20f
-        val radius = (size.width.toFloat() - stroke) / 2
+    Image(
+        painter = painterResource(id = com.surovtsev.common.R.drawable.background),
+        contentDescription = "",
+        modifier = Modifier.fillMaxSize()
+    )
+    Icon(
+        painter = painterResource(id = com.surovtsev.common.R.drawable.back),
+        modifier = Modifier.fillMaxSize(),
+        contentDescription = "",
+        tint = PrimaryColor,
+    )
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val circlePath = Path().apply {
+            addOval(Rect(center, size.width.toFloat() / 2))
+        }
+        clipPath(circlePath, clipOp = ClipOp.Difference) {
+            drawRect(SolidColor(Color.Black))
+        }
+    }
+}
 
-        drawCircle(
-            color = PrimaryColor, radius = radius, style = Stroke(
-                width = stroke,
-            )
-        )
-    })
+class ProgressContext {
+    private val _progress = MutableStateFlow(0)
+    val progress = _progress.asStateFlow()
+
+    fun updateProgress(value: Int) {
+        _progress.value = value
+    }
+}
+
+@Composable
+fun Progress(
+    context: ProgressContext,
+    durationMs: Int,
+    delayMs: Int,
+) {
+    var finished by remember { mutableStateOf(false) }
+    val progress by animateIntAsState(
+        targetValue = if (finished) 100 else 0,
+        animationSpec = tween(
+            durationMillis = durationMs,
+            delayMillis = delayMs,
+            easing = LinearEasing,
+        ),
+        label = "",
+    )
+    LaunchedEffect(finished) {
+        finished = true
+    }
+
+    context.updateProgress(progress)
 }
 
 @Composable
@@ -108,15 +158,13 @@ fun Controls(
             painterResource(id = it.id)
         }
 
-        var animated by remember { mutableStateOf(false) }
-        val progress by animateIntAsState(
-            targetValue = if (animated) 100 else 0, animationSpec = tween(
-                durationMillis = 1000, delayMillis = 500, easing = LinearEasing
-            ), label = ""
+        val progressContext = ProgressContext()
+
+        Progress(
+            context = progressContext, durationMs = 1000, delayMs = 500,
         )
-        LaunchedEffect(animated) {
-            animated = true
-        }
+
+        val progress by progressContext.progress.collectAsState()
 
         val ctx = LocalContext.current
 
@@ -129,13 +177,13 @@ fun Controls(
         val diffAngle = remember { mutableFloatStateOf(0f) }
         val commitedDiffAngle =
             remember { mutableFloatStateOf(-2 * Math.PI.toFloat() * (viewModel.items.count() - 1) / 12 / 2) }
-        val center = size.width / 2
+        val radius = size.width.toFloat() / 2
 
-        fun calculateAngle(prevValue: Float, x: Float, y: Float): Float {
-            val dx = x - center
-            val dy = y - center
+        fun calculateAngle(prevValue: Float, x: Float, y: Float, radius: Float): Float {
+            val dx = x - radius
+            val dy = y - radius
             val l = sqrt(dx * dx + dy * dy)
-            if (l < center / 10) {
+            if (l < radius / 10) {
                 return prevValue
             }
             val nX = dx / l
@@ -175,6 +223,7 @@ fun Controls(
                             prevAngle.floatValue,
                             currX.floatValue,
                             currY.floatValue,
+                            radius,
                         )
                     }, onDrag = { _: PointerInputChange, dragAmount: Offset ->
                         currX.floatValue = (currX.floatValue + dragAmount.x).coerceIn(
@@ -187,6 +236,7 @@ fun Controls(
                             currAngle.floatValue,
                             currX.floatValue,
                             currY.floatValue,
+                            radius,
                         )
                         diffAngle.floatValue = currAngle.floatValue - prevAngle.floatValue
 
@@ -212,7 +262,7 @@ fun Controls(
                     val c = item.center
                     Icon(
                         painter = painterResources[idx],
-                        contentDescription = "Localized description",
+                        contentDescription = "",
                         modifier = Modifier
                             .size(iconSide, iconSide)
                             .offset(c.x.toDp() - iconSide / 2, c.y.toDp() - iconSide / 2)
@@ -235,12 +285,12 @@ fun Controls(
                             .offset(
                                 tc.x.toDp() - textBoxSize / 2, tc.y.toDp() - textBoxSize / 2
                             )
-                            //.border(1.dp, Color.Green)
                             .rotate(radToGrad(item.angle)),
                     ) {
                         Text(
                             text = viewModel.items[idx].caption,
-                            modifier = Modifier.align(Alignment.CenterEnd), style = TextStyle(
+                            modifier = Modifier.align(Alignment.CenterEnd),
+                            style = TextStyle(
                                 //fontSize = 18.sp,
                                 fontSize = (viewModel.itemCaptionFontSizeRate * viewModel.iconSide).toSp(),
                                 //fontFamily = FontFamily(Font(R.font.if_kica)),
@@ -258,7 +308,7 @@ fun Controls(
                     val dy = (size.width.toDp() - iconSize).div(2)
                     Icon(
                         painter = painterResource(id = com.surovtsev.common.R.drawable.microphone),
-                        contentDescription = "Localized description",
+                        contentDescription = "",
                         modifier = Modifier
                             .size(iconSize, iconSize)
                             .offset(dx, dy)
@@ -272,7 +322,7 @@ fun Controls(
                     val xy = (Vec2(cos(angle), sin(angle)) * 0.83f + 1f) * viewModel.radius
                     Icon(
                         painter = painterResource(id = com.surovtsev.common.R.drawable.home_icon),
-                        contentDescription = "Localized description",
+                        contentDescription = "",
                         modifier = Modifier
                             .size(iconSize, iconSize)
                             .offset(xy.x.toDp() - iconSize / 2, xy.y.toDp() - iconSize / 2)
@@ -286,7 +336,7 @@ fun Controls(
                     val dy = (size.width.toDp() - iconSize).div(2)
                     Icon(
                         painter = painterResource(id = com.surovtsev.common.R.drawable.breakfast_icon),
-                        contentDescription = "Localized description",
+                        contentDescription = "",
                         modifier = Modifier
                             .size(iconSize, iconSize)
                             .offset(dx, dy)
