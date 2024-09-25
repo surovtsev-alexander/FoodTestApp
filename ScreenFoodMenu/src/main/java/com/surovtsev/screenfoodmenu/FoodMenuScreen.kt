@@ -1,11 +1,6 @@
 package com.surovtsev.screenfoodmenu
 
 import android.widget.Toast
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -18,24 +13,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -52,10 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.surovtsev.common.theme.GrayColor
 import com.surovtsev.common.theme.PrimaryColor
+import com.surovtsev.common.ui_elements.kolobokscreenframe.KolobokScreenFrame
+import com.surovtsev.common.ui_elements.progress.Progress
+import com.surovtsev.common.ui_elements.progress.ProgressContext
 import com.surovtsev.common.viewmodels.FoodMenuViewModel
 import glm_.vec2.Vec2
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.acos
 import kotlin.math.cos
 import kotlin.math.min
@@ -84,67 +73,10 @@ fun FoodMenuScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopStart,
         ) {
-            Circle(size)
+            KolobokScreenFrame(size)
             Controls(size, localDensity, viewModel)
         }
     }
-}
-
-@Composable
-fun Circle(
-    size: IntSize,
-) {
-    Image(
-        painter = painterResource(id = com.surovtsev.common.R.drawable.background),
-        contentDescription = "",
-        modifier = Modifier.fillMaxSize()
-    )
-    Icon(
-        painter = painterResource(id = com.surovtsev.common.R.drawable.back),
-        modifier = Modifier.fillMaxSize(),
-        contentDescription = "",
-        tint = PrimaryColor,
-    )
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val circlePath = Path().apply {
-            addOval(Rect(center, size.width.toFloat() / 2))
-        }
-        clipPath(circlePath, clipOp = ClipOp.Difference) {
-            drawRect(SolidColor(Color.Black))
-        }
-    }
-}
-
-class ProgressContext {
-    private val _progress = MutableStateFlow(0)
-    val progress = _progress.asStateFlow()
-
-    fun updateProgress(value: Int) {
-        _progress.value = value
-    }
-}
-
-@Composable
-fun Progress(
-    context: ProgressContext,
-    durationMs: Int,
-    delayMs: Int,
-) {
-    var finished by remember { mutableStateOf(false) }
-    val progress by animateIntAsState(
-        targetValue = if (finished) 100 else 0,
-        animationSpec = tween(
-            durationMillis = durationMs,
-            delayMillis = delayMs,
-            easing = LinearEasing,
-        ),
-        label = "",
-    )
-    LaunchedEffect(finished) {
-        finished = true
-    }
-
-    context.updateProgress(progress)
 }
 
 @Composable
@@ -159,11 +91,11 @@ fun Controls(
         }
 
         val progressContext = ProgressContext()
-
         Progress(
-            context = progressContext, durationMs = 1000, delayMs = 500,
+            context = progressContext,
+            durationMs = 1000,
+            delayMs = 500,
         )
-
         val progress by progressContext.progress.collectAsState()
 
         val ctx = LocalContext.current
