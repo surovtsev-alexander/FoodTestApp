@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.surovtsev.common.appnavigation.NavigationItem
 import com.surovtsev.common.helpers.MathHelper.radToGrad
 import com.surovtsev.common.theme.GrayColor
 import com.surovtsev.common.theme.PrimaryColor
@@ -49,6 +51,7 @@ fun FoodMenuScreen(
             screenSize = screenSize,
             density = localDensity,
             viewModel = viewModel,
+            navController = navController,
         )
     }
 }
@@ -58,6 +61,7 @@ fun ScreenContent(
     screenSize: IntSize,
     density: Density,
     viewModel: FoodMenuViewModel,
+    navController: NavController,
 ) {
     RotationDetectingBox(
         screenSize = screenSize,
@@ -68,6 +72,7 @@ fun ScreenContent(
             viewModel = viewModel,
             rotationContext = rotationContext,
             density = density,
+            navController = navController,
         )
     }
 }
@@ -78,6 +83,7 @@ fun BoxScope.Controls(
     viewModel: FoodMenuViewModel,
     rotationContext: RotationContext,
     density: Density,
+    navController: NavController,
 ) {
     val progressContext = ProgressContext()
     Progress(
@@ -91,13 +97,14 @@ fun BoxScope.Controls(
     val diffAngle by rotationContext.diffAngle.collectAsState()
 
     viewModel.radius = screenSize.height.toFloat() / 2
-    viewModel.angle = commitedDiffAngle + diffAngle
+    viewModel.angle = if (false) commitedDiffAngle + diffAngle else rotationContext.initialAngle
     viewModel.progress = progress
     viewModel.updateCoordinates()
 
     Buttons(
         viewModel = viewModel,
         density = density,
+        navController = navController,
     )
     with(density) {
         Text(
@@ -122,6 +129,7 @@ fun BoxScope.Controls(
 fun Buttons(
     viewModel: FoodMenuViewModel,
     density: Density,
+    navController: NavController,
 ) {
     val ctx = LocalContext.current
 
@@ -143,11 +151,15 @@ fun Buttons(
                     //.background(color = Color(0xFFA3A3A3))
                     .rotate(radToGrad(item.imageCorrectionAngle + item.angle))
                     .clickable {
-                        Toast
-                            .makeText(
-                                ctx, "${viewModel.items[idx]}", Toast.LENGTH_SHORT
-                            )
-                            .show()
+                        if (false) {
+                            Toast
+                                .makeText(
+                                    ctx, "${viewModel.items[idx]}", Toast.LENGTH_SHORT
+                                )
+                                .show()
+                        } else {
+                            navController.navigate(NavigationItem.Dish.route)
+                        }
                     },
                 tint = GrayColor,
             )

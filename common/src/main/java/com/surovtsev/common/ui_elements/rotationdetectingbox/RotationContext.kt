@@ -3,7 +3,7 @@ package com.surovtsev.common.ui_elements.rotationdetectingbox
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class RotationContext(initialAngle: Float) {
+class RotationContext(val initialAngle: Float) {
     private val _diffAngle = MutableStateFlow(0f)
     val diffAngle = _diffAngle.asStateFlow()
 
