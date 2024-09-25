@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.FloatState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -35,12 +37,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.surovtsev.common.helpers.MathHelper.calculateAngle
 import com.surovtsev.common.helpers.MathHelper.normalRad
 import com.surovtsev.common.helpers.MathHelper.radToGrad
+import com.surovtsev.common.helpers.MathHelper.radToGradString
 import com.surovtsev.common.theme.GrayColor
 import com.surovtsev.common.theme.PrimaryColor
 import com.surovtsev.common.ui_elements.generalcontrols.GeneralControls
@@ -48,7 +52,9 @@ import com.surovtsev.common.ui_elements.kolobokscreenframe.KolobokScreenFrame
 import com.surovtsev.common.ui_elements.progress.Progress
 import com.surovtsev.common.ui_elements.progress.ProgressContext
 import com.surovtsev.common.viewmodels.FoodMenuViewModel
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 @Composable
 fun FoodMenuScreen(
@@ -215,6 +221,17 @@ fun Controls(
 
             GeneralControls(size, density)
 
+            DebugControls(
+                prevAngle,
+                currAngle,
+                diffAngle,
+                commitedDiffAngle,
+                currX,
+                currY,
+                prevX,
+                prevY,
+                progressContext.progress,
+            )
         }
     }
 }
@@ -229,9 +246,56 @@ fun Content(
 }
 
 @Composable
-fun DebugControls(
-
+fun BoxScope.DebugControls(
+    prevAngle: FloatState,
+    currAngle: FloatState,
+    diffAngle: FloatState,
+    commitedDiffAngle: FloatState,
+    currX: FloatState,
+    currY: FloatState,
+    prevX: FloatState,
+    prevY: FloatState,
+    progress: StateFlow<Int>,
 ) {
+    if (false) {
+        Text(
+            text = radToGradString(prevAngle.floatValue) + " ->" + radToGradString(
+                currAngle.floatValue
+            ) + ": " + radToGradString(
+                commitedDiffAngle.floatValue
+            ) + " " + radToGradString(diffAngle.floatValue),
+            Modifier
+                .align(Alignment.Center)
+                .background(Color.White),
+        )
+        Box(
+            Modifier
+                .offset {
+                    IntOffset(
+                        currX.floatValue.roundToInt(), currY.floatValue.roundToInt()
+                    )
+                }
+                .background(Color.Blue)
+                .size(50.dp))
 
+        Box(modifier = Modifier
+            .offset {
+                IntOffset(
+                    prevX.floatValue.roundToInt(),
+                    prevY.floatValue.roundToInt(),
+                )
+            }
+            .background(Color.Red)
+            .size(50.dp))
+    }
+
+    if (false) {
+        Text(
+            text = "${progress.value}",
+            Modifier
+                .align(Alignment.Center)
+                .background(Color.White)
+        )
+    }
 }
 
