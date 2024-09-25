@@ -19,7 +19,7 @@ import com.surovtsev.common.theme.PrimaryColor
 
 @Composable
 fun KolobokScreenFrame(
-    size: IntSize,
+    screenSize: IntSize,
 ) {
     Image(
         painter = painterResource(id = com.surovtsev.common.R.drawable.background),
@@ -34,7 +34,7 @@ fun KolobokScreenFrame(
     )
     Canvas(modifier = Modifier.fillMaxSize()) {
         val circlePath = Path().apply {
-            addOval(Rect(center, size.width.toFloat() / 2))
+            addOval(Rect(center, screenSize.width.toFloat() / 2))
         }
         clipPath(circlePath, clipOp = ClipOp.Difference) {
             drawRect(SolidColor(Color.Black))
