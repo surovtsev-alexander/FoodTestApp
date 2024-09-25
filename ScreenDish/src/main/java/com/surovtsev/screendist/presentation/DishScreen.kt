@@ -117,13 +117,6 @@ fun Buttons(
                 modifier = Modifier
                     .size(iconSide, iconSide)
                     .offset(c.x.toDp() - iconSide / 2, c.y.toDp() - iconSide / 2)
-                    .clickable {
-                        Toast
-                            .makeText(
-                                ctx, "${viewModel.items[idx]}", Toast.LENGTH_SHORT
-                            )
-                            .show()
-                    },
             )
         }
         val item = viewModel.centerItem
@@ -134,8 +127,6 @@ fun Buttons(
             modifier = Modifier
                 .size(iconSide, iconSide)
                 .offset(c.x.toDp() - iconSide / 2, c.y.toDp() - iconSide / 2)
-                .clickable {
-                },
         )
 
     }

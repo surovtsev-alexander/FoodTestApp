@@ -1,10 +1,10 @@
 package com.surovtsev.screenfoodmenu
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -25,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.surovtsev.common.appnavigation.NavigationItem
 import com.surovtsev.common.helpers.MathHelper.radToGrad
 import com.surovtsev.common.theme.GrayColor
@@ -93,32 +92,38 @@ fun BoxScope.Controls(
     )
 
     val progress by progressContext.progress.collectAsState()
-    val commitedDiffAngle by rotationContext.commitedDiffAngle.collectAsState()
-    val diffAngle by rotationContext.diffAngle.collectAsState()
 
     viewModel.radius = screenSize.height.toFloat() / 2
-    viewModel.angle = if (false) commitedDiffAngle + diffAngle else rotationContext.initialAngle
+    viewModel.angle = rotationContext.initialAngle
     viewModel.progress = progress
     viewModel.updateCoordinates()
 
-    Buttons(
-        viewModel = viewModel,
-        density = density,
-        navController = navController,
-    )
-    with(density) {
-        Text(
-            text = "Завтраки",
-            style = TextStyle(
-                // fontSize = 32.sp,
-                fontSize = viewModel.iconSide.toSp() * viewModel.orderCaptionFontSizeRate,
-                //fontFamily = FontFamily(Font(R.font.if_kica)),
-                fontWeight = FontWeight(400),
-                color = PrimaryColor,
-                textAlign = TextAlign.Center,
-            ),
-            modifier = Modifier.align(Alignment.Center),
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable {
+                navController.navigate(NavigationItem.Dish.route)
+            },
+    ) {
+        Buttons(
+            viewModel = viewModel,
+            density = density,
+            navController = navController,
         )
+        with(density) {
+            Text(
+                text = "Завтраки",
+                style = TextStyle(
+                    // fontSize = 32.sp,
+                    fontSize = viewModel.iconSide.toSp() * viewModel.orderCaptionFontSizeRate,
+                    //fontFamily = FontFamily(Font(R.font.if_kica)),
+                    fontWeight = FontWeight(400),
+                    color = PrimaryColor,
+                    textAlign = TextAlign.Center,
+                ),
+                modifier = Modifier.align(Alignment.Center),
+            )
+        }
     }
 
     GeneralControls(screenSize, density)
@@ -149,18 +154,7 @@ fun Buttons(
                     .size(iconSide, iconSide)
                     .offset(c.x.toDp() - iconSide / 2, c.y.toDp() - iconSide / 2)
                     //.background(color = Color(0xFFA3A3A3))
-                    .rotate(radToGrad(item.imageCorrectionAngle + item.angle))
-                    .clickable {
-                        if (false) {
-                            Toast
-                                .makeText(
-                                    ctx, "${viewModel.items[idx]}", Toast.LENGTH_SHORT
-                                )
-                                .show()
-                        } else {
-                            navController.navigate(NavigationItem.Dish.route)
-                        }
-                    },
+                    .rotate(radToGrad(item.imageCorrectionAngle + item.angle)),
                 tint = GrayColor,
             )
             val tc = item.textCenter
