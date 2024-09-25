@@ -69,8 +69,6 @@ fun ScreenContent(
             rotationContext = rotationContext,
             density = density,
         )
-
-        GeneralControls(screenSize, density)
     }
 }
 
@@ -114,9 +112,10 @@ fun BoxScope.Controls(
             ),
             modifier = Modifier.align(Alignment.Center),
         )
-
-        DebugControls(progressContext = progressContext)
     }
+
+    GeneralControls(screenSize, density)
+    DebugControls(progressContext = progressContext)
 }
 
 @Composable
