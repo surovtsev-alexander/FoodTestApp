@@ -61,7 +61,7 @@ fun ScreenContent(
 ) {
     RotationDetectingBox(
         screenSize = screenSize,
-        initialAngle = -2 * Math.PI.toFloat() * (viewModel.items.count() - 1) / 12 / 2,
+        initialAngle = -2 * Math.PI.toFloat() * (viewModel.items.count() - 1 + if (viewModel.gapInTheMiddle) 1 else 0) / 2 / 12,
     ) { rotationContext ->
         Controls(
             screenSize = screenSize,

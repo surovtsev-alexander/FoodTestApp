@@ -49,6 +49,9 @@ fun KolobokScreen(
             contentDescription = "",
             modifier = Modifier.fillMaxSize()
         )
+
+        screenContent(screenSize)
+
         Icon(
             painter = painterResource(id = com.surovtsev.common.R.drawable.back),
             modifier = Modifier.fillMaxSize(),
@@ -63,7 +66,5 @@ fun KolobokScreen(
                 drawRect(SolidColor(Color.Black))
             }
         }
-
-        screenContent(screenSize)
     }
 }

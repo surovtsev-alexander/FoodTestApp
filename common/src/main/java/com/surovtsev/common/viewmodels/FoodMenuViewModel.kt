@@ -30,6 +30,9 @@ class FoodMenuViewModel : ViewModel() {
         Item("Пицца", R.drawable.pizza_icon, 4),
     )
 
+    val itemsCountToDisplay = min(items.count(), 12)
+    val gapInTheMiddle = true
+
     var progress = 0
         set(value) {
             field = value
@@ -62,10 +65,16 @@ class FoodMenuViewModel : ViewModel() {
         private set
 
     fun updateCoordinates() {
-        for (idx in 0 until min(items.count(), 12)) {
+
+        val itemsCountToDisplay = min(items.count(), 12)
+
+        val halfItems = (itemsCountToDisplay + 1) / 2
+
+        for (idx in 0 until itemsCountToDisplay) {
             val item = items[idx]
 
-            item.angle = (2f * Math.PI.toFloat() / 12 * idx + angle) * (progress / 100f)
+            val pos = if (gapInTheMiddle && idx >= halfItems) idx + 1 else idx
+            item.angle = (2f * Math.PI.toFloat() / 12 * pos + angle) * (progress / 100f)
 
             val xy = Vec2(cos(item.angle), sin(item.angle))
             //items[idx].center = center * (progress / 100f) + sourcePosition * (1f - progress / 100f)
