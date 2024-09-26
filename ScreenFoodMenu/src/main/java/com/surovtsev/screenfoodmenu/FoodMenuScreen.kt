@@ -1,5 +1,6 @@
 package com.surovtsev.screenfoodmenu
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -28,7 +28,6 @@ import androidx.navigation.NavController
 import com.surovtsev.common.appnavigation.NavigationItem
 import com.surovtsev.common.helpers.MathHelper.radToGrad
 import com.surovtsev.common.theme.GrayColor
-import com.surovtsev.common.theme.PrimaryColor
 import com.surovtsev.common.ui_elements.generalcontrols.GeneralControls
 import com.surovtsev.common.ui_elements.kolobokscreen.KolobokScreen
 import com.surovtsev.common.ui_elements.progress.Progress
@@ -64,7 +63,7 @@ fun ScreenContent(
 ) {
     RotationDetectingBox(
         screenSize = screenSize,
-        initialAngle = -2 * Math.PI.toFloat() * (viewModel.items.count() - 1 + if (viewModel.gapInTheMiddle) 1 else 0) / 2 / 12,
+        initialAngle = viewModel.initialAngle,
     ) { rotationContext ->
         Controls(
             screenSize = screenSize,
@@ -110,20 +109,20 @@ fun BoxScope.Controls(
             density = density,
             navController = navController,
         )
-        with(density) {
-            Text(
-                text = "Завтраки",
-                style = TextStyle(
-                    // fontSize = 32.sp,
-                    fontSize = viewModel.iconSide.toSp() * viewModel.orderCaptionFontSizeRate,
-                    //fontFamily = FontFamily(Font(R.font.if_kica)),
-                    fontWeight = FontWeight(400),
-                    color = PrimaryColor,
-                    textAlign = TextAlign.Center,
-                ),
-                modifier = Modifier.align(Alignment.Center),
-            )
-        }
+
+        Arrows(
+            screenSize = screenSize,
+            viewModel = viewModel,
+            progressContext = progressContext,
+            density = density,
+            navController = navController,
+        )
+
+        Section(
+            density = density,
+            viewModel = viewModel,
+            progressContext = progressContext,
+        )
     }
 
     GeneralControls(screenSize, density)
@@ -136,7 +135,6 @@ fun Buttons(
     density: Density,
     navController: NavController,
 ) {
-    val ctx = LocalContext.current
 
     val painterResources = viewModel.items.map {
         painterResource(id = it.id)
@@ -183,6 +181,72 @@ fun Buttons(
         }
     }
 }
+
+@Composable
+fun BoxScope.Section(
+    density: Density,
+    viewModel: FoodMenuViewModel,
+    progressContext: ProgressContext,
+) {
+    val progress by progressContext.progress.collectAsState()
+
+    if (progress < 100) {
+        return
+    }
+
+    with(density) {
+        Text(
+            text = "Завтраки",
+            style = TextStyle(
+                // fontSize = 32.sp,
+                fontSize = viewModel.iconSide.toSp() * viewModel.orderCaptionFontSizeRate,
+                //fontFamily = FontFamily(Font(R.font.if_kica)),
+                fontWeight = FontWeight(400),
+                color = com.surovtsev.common.theme.PrimaryColor,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            ),
+            modifier = Modifier
+                .align(androidx.compose.ui.Alignment.Center),
+        )
+    }
+}
+
+@Composable
+fun Arrows(
+    screenSize: IntSize,
+    viewModel: FoodMenuViewModel,
+    progressContext: ProgressContext,
+    density: Density,
+    navController: NavController,
+) {
+    val progress by progressContext.progress.collectAsState()
+
+    if (progress < 100) {
+        return
+    }
+
+    val painterResources = viewModel.arrows.map {
+        painterResource(id = it.id)
+    }
+
+    with(density) {
+        for (i in 0 until viewModel.arrows.size) {
+            val arrow = viewModel.arrows[i]
+            val side = screenSize.height.toDp()
+
+            val dim = arrow.dim
+            val startPos = arrow.p1
+            Image(
+                painter = painterResources[i],
+                contentDescription = "",
+                modifier = Modifier
+                    .size(side * dim.x, side * dim.y)
+                    .offset(side * startPos.x, side * startPos.y)
+            )
+        }
+    }
+}
+
 
 @Composable
 fun BoxScope.DebugControls(

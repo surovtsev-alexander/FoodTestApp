@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -111,7 +110,6 @@ fun BoxScope.Controls(
         )
     } else {
         Dish(
-            screenSize = screenSize,
             viewModel = viewModel,
             density = density
         )
@@ -122,7 +120,6 @@ fun BoxScope.Controls(
 
 @Composable
 fun Dish(
-    screenSize: IntSize,
     viewModel: DishViewModel,
     density: Density,
 ) {
@@ -151,112 +148,125 @@ fun Dish(
                 )
             }
 
-            val radius = viewModel.radius.toDp()
-            val w = iconSide * 0.95f
-            val h = iconSide * viewModel.dishTextHeightRate * 0.85f
-            Box(
-                modifier = Modifier
-                    .size(w, h)
-                    .offset(radius - w / 2, radius - h / 2)
+            DishInfo(
+                viewModel = viewModel,
+                density = density,
+            )
+        }
+    }
+}
+
+@Composable
+fun BoxScope.DishInfo(
+    viewModel: DishViewModel,
+    density: Density,
+) {
+    with(density) {
+        val iconSide = viewModel.dishSide.toDp()
+        val radius = viewModel.radius.toDp()
+        val w = iconSide * 0.95f
+        val h = iconSide * viewModel.dishTextHeightRate * 0.85f
+        Box(
+            modifier = Modifier
+                .size(w, h)
+                .offset(radius - w / 2, radius - h / 2)
+        ) {
+            data class Box(
+                val p1: Vec2,
+                val p2: Vec2,
             ) {
-                data class Box(
-                    val p1: Vec2,
-                    val p2: Vec2,
-                ) {
-                    fun width() = w * (p2.x - p1.x)
-                    fun height() = h * (p2.y - p1.y)
-                }
+                fun width() = w * (p2.x - p1.x)
+                fun height() = h * (p2.y - p1.y)
+            }
 
-                val y1 = 0.15f
-                val y2 = 1f - y1
-                val x1 = y1 * (h / w)
-                val x2 = 1f - x1
+            val y1 = 0.15f
+            val y2 = 1f - y1
+            val x1 = y1 * (h / w)
+            val x2 = 1f - x1
 
-                val boxes = listOf(
-                    Box(Vec2(0f, y1), Vec2(x1, y2)),
-                    Box(Vec2(x1, 0f), Vec2(x2, 1f)),
-                    Box(Vec2(x2, y1), Vec2(1f, y2)),
+            val boxes = listOf(
+                Box(Vec2(0f, y1), Vec2(x1, y2)),
+                Box(Vec2(x1, 0f), Vec2(x2, 1f)),
+                Box(Vec2(x2, y1), Vec2(1f, y2)),
+            )
+
+            boxes.forEach { box ->
+                Box(
+                    modifier = Modifier
+                        .size(box.width(), box.height())
+                        .offset(w * box.p1.x, h * box.p1.y)
+                        .background(color = Color(0xBF1F1F1F))
                 )
+            }
 
-                boxes.forEach { box ->
-                    Box(
+            Column {
+                Box(
+                    modifier = Modifier
+                        .weight(0.6f),
+                )
+                {
+                    Text(
+                        text = "Фирменная шакшука \nс сезонной зеленью",
+                        style = TextStyle(
+                            fontSize = 28.sp,
+                            //fontFamily = FontFamily(Font(R.font.if_kica)),
+                            fontWeight = FontWeight(400),
+                            color = Color(0xFFFAA926),
+                            textAlign = TextAlign.Center,
+                        ),
                         modifier = Modifier
-                            .size(box.width(), box.height())
-                            .offset(w * box.p1.x, h * box.p1.y)
-                            .background(color = Color(0xBF1F1F1F))
+                            .fillMaxWidth()
+                            .align(Alignment.Center),
                     )
                 }
-
-                Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(0.3f)
+                ) {
                     Box(
                         modifier = Modifier
-                            .weight(0.6f),
+                            .fillMaxSize()
+                            .weight(0.1f)
                     )
-                    {
-                        Text(
-                            text = "Фирменная шакшука \nс сезонной зеленью",
-                            style = TextStyle(
-                                fontSize = 28.sp,
-                                //fontFamily = FontFamily(Font(R.font.if_kica)),
-                                fontWeight = FontWeight(400),
-                                color = Color(0xFFFAA926),
-                                textAlign = TextAlign.Center,
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.Center),
-                        )
-                    }
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .weight(0.3f)
+                            .weight(0.8f),
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .weight(0.1f)
+                        val labels = listOf(
+                            "Белки — 16",
+                            "Жиры — 36",
+                            "Углеводы — 20",
+                            "Калории — 332",
                         )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .weight(0.8f),
-                        ) {
-                            val labels = listOf(
-                                "Белки — 16",
-                                "Жиры — 36",
-                                "Углеводы — 20",
-                                "Калории — 332",
+                        for (i in 0 until labels.size) {
+                            val label = labels[i]
+                            Text(
+                                text = label,
+                                style = TextStyle(
+                                    fontSize = radius.toSp() / 40,
+                                    //fontFamily = FontFamily(Font(R.font.tilda_sans)),
+                                    fontWeight = FontWeight(700),
+                                    color = Color(0xFFFFFFFF),
+                                ),
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically),
                             )
-                            for (i in 0 until labels.size) {
-                                val label = labels[i]
-                                Text(
-                                    text = label,
-                                    style = TextStyle(
-                                        fontSize = radius.toSp() / 40,
-                                        //fontFamily = FontFamily(Font(R.font.tilda_sans)),
-                                        fontWeight = FontWeight(700),
-                                        color = Color(0xFFFFFFFF),
-                                    ),
+                            if (i < (labels.size - 1)) {
+                                Box(
                                     modifier = Modifier
-                                        .align(Alignment.CenterVertically),
+                                        .fillMaxWidth()
+                                        .weight(1f),
                                 )
-                                if (i < (labels.size - 1)) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1f),
-                                    )
-                                }
                             }
                         }
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .weight(0.1f)
-                        )
                     }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(0.1f)
+                    )
                 }
             }
         }

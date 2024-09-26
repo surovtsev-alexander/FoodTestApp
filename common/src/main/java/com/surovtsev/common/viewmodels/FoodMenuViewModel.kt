@@ -33,6 +33,8 @@ class FoodMenuViewModel : ViewModel() {
     val itemsCountToDisplay = min(items.count(), 12)
     val gapInTheMiddle = true
 
+    val initialAngle = -2 * Math.PI.toFloat() * (items.count() - 1 + if (gapInTheMiddle) 1 else 0) / 2 / 12
+
     var progress = 0
         set(value) {
             field = value
@@ -63,6 +65,41 @@ class FoodMenuViewModel : ViewModel() {
     val orderCaptionFontSizeRate = 0.6f
     var textBoxSize: Float = 0f
         private set
+
+    class ArrowInfo(
+        val id: Int,
+        x1: Int, x2: Int, x3: Int,
+        y1: Int, y2: Int, y3: Int,
+    ) {
+        val p1: Vec2
+        val p2: Vec2
+        val dim: Vec2
+        val center: Vec2
+
+        init {
+            val width = x1 + x2 + x3
+            val height = y1 + y2 + y3
+
+            p1 = Vec2(1f * x1 / width, 1f * y1 / height)
+            dim = Vec2(1f * x2 / width, 1f * y2 / height)
+            p2 = p1 + dim
+
+            center = p1 + dim / 2
+        }
+    }
+
+    val arrows = listOf(
+        ArrowInfo(
+            R.drawable.arrow_up,
+            620, 87, 373,
+            399, 126, 555
+        ),
+        ArrowInfo(
+            R.drawable.arrow_down,
+            620, 87, 373,
+            557, 125, 397
+        )
+    )
 
     fun updateCoordinates() {
         val halfItems = (itemsCountToDisplay + 1) / 2
