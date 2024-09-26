@@ -41,6 +41,11 @@ class DishViewModel() : ViewModel() {
 
     val centerItem = Item("", R.drawable.shakshuka, 0)
 
+    val dishItems = listOf(
+        Item("", R.drawable.shakshuka_up, 0),
+        Item("", R.drawable.shakshuka_down, 0)
+    )
+
     val sectors = 12
     val itemsCountToDisplay = min(items.count(), 10)
 
@@ -52,16 +57,21 @@ class DishViewModel() : ViewModel() {
         set(value) {
             field = value
             iconSide = radius * iconSideRate
+            dishSide = radius * dishSideRate
             sourcePosition.x = radius * (1f + centerRadiusRate)
             sourcePosition.y = radius
         }
     var iconSide: Float = 0f
+        private set
+    var dishSide: Float = 0f
         private set
 
     private val sourcePosition: Vec2 = Vec2(0f, 0f)
 
     private val iconSideRate = 0.2f
     private val centerRadiusRate = 0.8f
+    private val dishSideRate = 2f * 4f / 7f
+    val dishTextHeightRate = 2f * 156f / 661f
 
     fun updateCoordinates() {
         val halfItems = (itemsCountToDisplay + 1) / 2
@@ -77,6 +87,13 @@ class DishViewModel() : ViewModel() {
         }
 
         centerItem.center = Vec2(radius)
-        centerItem.center = centerItem.center * (progress / 100f) + sourcePosition * (1f - progress / 100f)
+        centerItem.center =
+            centerItem.center * (progress / 100f) + sourcePosition * (1f - progress / 100f)
+
+        val dishCenter1 = Vec2(1f, 3f / 7f) * radius
+        val dishCenter2 = Vec2(1f, 2f - 3f / 7f) * radius
+
+        dishItems[0].center = dishCenter1
+        dishItems[1].center = dishCenter2
     }
 }
