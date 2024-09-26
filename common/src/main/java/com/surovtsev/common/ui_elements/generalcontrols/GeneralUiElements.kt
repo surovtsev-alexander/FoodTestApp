@@ -1,6 +1,7 @@
 package com.surovtsev.common.ui_elements.generalcontrols
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -18,10 +19,15 @@ import glm_.vec2.Vec2
 import kotlin.math.cos
 import kotlin.math.sin
 
+typealias Callback = () -> Unit
+
 @Composable
 fun GeneralControls(
     screenSize: IntSize,
     density: Density,
+    homeButtonAction: Callback,
+    microphoneButtonAction: Callback,
+    nextButtonAction: Callback,
 ) {
 
     val widthDp = with(density) {
@@ -46,7 +52,8 @@ fun GeneralControls(
             contentDescription = "",
             modifier = Modifier
                 .size(iconSize, iconSize)
-                .offset(dx, dy),
+                .offset(dx, dy)
+                .clickable { microphoneButtonAction() },
             tint = PrimaryColor,
         )
     }
@@ -82,7 +89,8 @@ fun GeneralControls(
             contentDescription = "",
             modifier = Modifier
                 .size(iconSize, iconSize)
-                .offset(dx, dy),
+                .offset(dx, dy)
+                .clickable { homeButtonAction() },
             tint = GrayColor,
         )
     }
@@ -106,7 +114,8 @@ fun GeneralControls(
             contentDescription = "",
             modifier = Modifier
                 .size(iconSize, iconSize)
-                .offset(dx, dy),
+                .offset(dx, dy)
+                .clickable { nextButtonAction() },
             tint = PrimaryColor,
         )
 

@@ -1,5 +1,6 @@
 package com.surovtsev.screenfoodmenu
 
+import android.view.MenuItem
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,12 +30,14 @@ import androidx.navigation.NavController
 import com.surovtsev.common.appnavigation.NavigationItem
 import com.surovtsev.common.helpers.MathHelper.radToGrad
 import com.surovtsev.common.theme.GrayColor
+import com.surovtsev.common.ui_elements.generalcontrols.Callback
 import com.surovtsev.common.ui_elements.generalcontrols.GeneralControls
 import com.surovtsev.common.ui_elements.kolobokscreen.KolobokScreen
 import com.surovtsev.common.ui_elements.progress.Progress
 import com.surovtsev.common.ui_elements.progress.ProgressContext
 import com.surovtsev.common.ui_elements.rotationdetectingbox.RotationContext
 import com.surovtsev.common.ui_elements.rotationdetectingbox.RotationDetectingBox
+import com.surovtsev.common.viewmodels.DishViewModel
 import com.surovtsev.common.viewmodels.FoodMenuViewModel
 import kotlin.math.min
 
@@ -43,6 +47,11 @@ fun FoodMenuScreen(
     navController: NavController,
 ) {
     val localDensity = LocalDensity.current
+
+    LaunchedEffect(Unit) {
+        viewModel.switchTo(FoodMenuViewModel.State.Welcome)
+    }
+
 
     KolobokScreen { screenSize ->
         ScreenContent(
@@ -83,11 +92,55 @@ fun BoxScope.Controls(
     density: Density,
     navController: NavController,
 ) {
+
+    MenuItems(
+        screenSize,
+        viewModel,
+        rotationContext,
+        density,
+        navController,
+    )
+
+    val homeButtonAction: Callback = {}
+    val microphoneButtonAction: Callback = {
+        viewModel.switchTo(FoodMenuViewModel.State.Welcome)
+    }
+    val nextButtonAction: Callback = {
+        if (viewModel.state.value == FoodMenuViewModel.State.Welcome) {
+            viewModel.switchTo(FoodMenuViewModel.State.Menu)
+        } else {
+            navController.navigate(NavigationItem.Dish.route)
+        }
+    }
+
+    GeneralControls(
+        screenSize,
+        density,
+        homeButtonAction,
+        microphoneButtonAction,
+        nextButtonAction,
+    )
+}
+
+@Composable
+fun BoxScope.MenuItems(
+    screenSize: IntSize,
+    viewModel: FoodMenuViewModel,
+    rotationContext: RotationContext,
+    density: Density,
+    navController: NavController,
+) {
+    val state by viewModel.state.collectAsState()
+
+    if (state != FoodMenuViewModel.State.Menu) {
+        return
+    }
+
     val progressContext = ProgressContext()
     Progress(
         context = progressContext,
         durationMs = 1000,
-        delayMs = 500,
+        delayMs = 0,
     )
 
     val progress by progressContext.progress.collectAsState()
@@ -99,10 +152,7 @@ fun BoxScope.Controls(
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .clickable {
-                navController.navigate(NavigationItem.Dish.route)
-            },
+            .fillMaxSize(),
     ) {
         Buttons(
             viewModel = viewModel,
@@ -125,7 +175,6 @@ fun BoxScope.Controls(
         )
     }
 
-    GeneralControls(screenSize, density)
     DebugControls(progressContext = progressContext)
 }
 

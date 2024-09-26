@@ -2,7 +2,6 @@ package com.surovtsev.screendist.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -28,6 +27,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.surovtsev.common.appnavigation.NavigationItem
+import com.surovtsev.common.ui_elements.generalcontrols.Callback
 import com.surovtsev.common.ui_elements.generalcontrols.GeneralControls
 import com.surovtsev.common.ui_elements.kolobokscreen.KolobokScreen
 import com.surovtsev.common.ui_elements.progress.Progress
@@ -115,7 +116,31 @@ fun BoxScope.Controls(
         )
     }
 
-    GeneralControls(screenSize, density)
+    val homeButtonAction: Callback = {
+        navController.navigate(NavigationItem.FoodMenu.route) {
+            popUpTo(0)
+        }
+    }
+    val microphoneButtonAction: Callback = {
+        navController.navigate(NavigationItem.FoodMenu.route) {
+            popUpTo(0)
+        }
+    }
+    val nextButtonAction: Callback = {
+        if (viewModel.state.value == DishViewModel.State.Menu) {
+            viewModel.switchTo(DishViewModel.State.Dish)
+        } else {
+            viewModel.switchTo(DishViewModel.State.Menu)
+        }
+    }
+
+    GeneralControls(
+        screenSize,
+        density,
+        homeButtonAction,
+        microphoneButtonAction,
+        nextButtonAction,
+    )
 }
 
 @Composable
@@ -129,10 +154,7 @@ fun Dish(
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .clickable {
-                viewModel.switchTo(DishViewModel.State.Menu)
-            },
+            .fillMaxSize(),
     ) {
         with(density) {
             val iconSide = viewModel.dishSide.toDp()
@@ -284,10 +306,7 @@ fun MenuButtons(
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .clickable {
-                viewModel.switchTo(DishViewModel.State.Dish)
-            },
+            .fillMaxSize(),
     ) {
         with(density) {
             val iconSide = viewModel.iconSide.toDp()

@@ -3,11 +3,25 @@ package com.surovtsev.common.viewmodels
 import androidx.lifecycle.ViewModel
 import com.surovtsev.common.R
 import glm_.vec2.Vec2
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 
 class FoodMenuViewModel : ViewModel() {
+    enum class State {
+        Welcome,
+        Menu,
+    }
+
+    private val _state = MutableStateFlow<State>(State.Welcome)
+    val state = _state.asStateFlow()
+
+    fun switchTo(state: State) {
+        _state.value = state
+    }
+
     data class Item(
         val caption: String,
         val id: Int,
